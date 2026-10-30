@@ -5,9 +5,8 @@
    Whenever it changes, a "cart:change" event fires on window so every
    part of the page (badge, drawer, + / - buttons) can update itself.
 
-   Pricing.quote() works out totals FOR DISPLAY ONLY.
-   The server recalculates everything from the database before saving
-   an order (Phase 3) — never trust prices coming from the browser.
+   Pricing.quote() asks the SERVER to price the cart (POST /api/quote),
+   so prices always come from the database — never from the browser.
    ===================================================================== */
 
 const Cart = (() => {
@@ -50,70 +49,19 @@ const Cart = (() => {
 
 const Pricing = (() => {
   /**
-   * Work out the full price breakdown.
-   * @param {object} o { items, fulfilment: 'delivery'|'pickup', coupon_code, settings }
+   * Ask the server for the full price breakdown of the cart.
+   * @param {object} o { items, fulfilment: 'delivery'|'pickup', coupon_code, phone }
+   * Returns { lines, subtotal, coupon_discount, delivery_charge, total, errors, ... }
    */
-  async function quote({ items = Cart.items(), fulfilment = 'delivery', coupon_code = '', settings }) {
-    const s = settings || await API.settings();
-    const [allProducts, allCombos] = await Promise.all([API.products(), API.combos()]);
-    const byId = Object.fromEntries(allProducts.map((p) => [p.id, { ...p, kind: 'product' }]));
-    for (const c of allCombos) byId['combo:' + c.id] = { ...c, kind: 'combo', weight: 'Combo kit' };
-
-    const errors = [];
-    const lines = [];
-    for (const [id, q] of Object.entries(items)) {
-      const item = byId[id];
-      if (!item || q <= 0) continue; // product removed from store
-      if (!item.in_stock) errors.push(`${item.name} is out of stock. Please remove it.`);
-      lines.push({ ...item, cart_id: id, qty: q, line_total: item.price * q });
+  async function quote({ items = Cart.items(), fulfilment = 'delivery', coupon_code = '', phone = '' } = {}) {
+    const q = await API.quote({ items, fulfilment, coupon_code, phone });
+    // Products the store has removed are dropped from the cart automatically
+    if (q.removed && q.removed.length) {
+      const all = Cart.items();
+      q.removed.forEach((id) => delete all[id]);
+      Cart.replace(all);
     }
-
-    const subtotal = lines.reduce((a, l) => a + l.line_total, 0);
-    const mrpTotal = lines.reduce((a, l) => a + l.mrp * l.qty, 0);
-
-    // Coupon
-    let couponDiscount = 0, couponError = '', couponNote = '';
-    if (coupon_code) {
-      try {
-        const c = await API.coupon(coupon_code);
-        if (subtotal < c.min_order) {
-          couponError = `Add ${rupees(c.min_order - subtotal)} more to use ${c.code}.`;
-        } else {
-          couponDiscount = c.type === 'percent'
-            ? Math.min(Math.round(subtotal * c.value / 100), c.max_discount || Infinity)
-            : c.value;
-          couponDiscount = Math.min(couponDiscount, subtotal);
-          couponNote = c.note || '';
-        }
-      } catch (e) {
-        couponError = e.message;
-      }
-    }
-
-    // Delivery charge (store pickup is always free)
-    const freeGap = Math.max(0, s.free_delivery_above - subtotal);
-    const deliveryCharge = fulfilment === 'pickup' || freeGap === 0 || lines.length === 0 ? 0 : s.delivery_charge;
-
-    const minGap = Math.max(0, s.min_order - subtotal);
-    if (lines.length === 0) errors.unshift('Your cart is empty.');
-    else if (minGap > 0) errors.unshift(`Minimum order is ${rupees(s.min_order)}. Add ${rupees(minGap)} more.`);
-
-    return {
-      lines,
-      item_count: lines.reduce((a, l) => a + l.qty, 0),
-      subtotal,
-      mrp_total: mrpTotal,
-      savings: mrpTotal - subtotal + couponDiscount,
-      coupon_code: couponDiscount ? String(coupon_code).toUpperCase() : '',
-      coupon_discount: couponDiscount,
-      coupon_error: couponError,
-      coupon_note: couponNote,
-      delivery_charge: deliveryCharge,
-      total: subtotal - couponDiscount + deliveryCharge,
-      free_delivery_gap: freeGap,
-      min_order_gap: minGap,
-      errors,
-    };
+    return q;
   }
 
   return { quote };

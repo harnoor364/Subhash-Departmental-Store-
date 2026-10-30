@@ -1,75 +1,77 @@
 /* =====================================================================
-   api.js — the ONLY file that talks to the backend
+   api.js — the ONLY file that talks to the backend (/api/...)
    ---------------------------------------------------------------------
-   PHASE 1: reads sample data from /data/sample-catalog.json and keeps
-   demo orders in this browser (localStorage). Nothing is sent anywhere.
+   Pages never call fetch() themselves; they call API.something().
+   So if a backend URL changes, this is the only file to edit.
 
-   PHASE 2+: each function below is switched to call /api/... on the
-   Cloudflare backend. Pages never need to change, because they only
-   ever call API.something().
+   PHASE 2: products, categories, settings, banners, combos and prices
+   come from the D1 database. ORDERS are still a browser-only demo
+   (localStorage) until Phase 3 adds the real order API.
    ===================================================================== */
 
 const API = (() => {
-  let catalogPromise = null;
+  const cache = new Map(); // GET responses are reused while the page is open
 
-  /** Load the sample catalog once and reuse it. */
-  function catalog() {
-    if (!catalogPromise) {
-      catalogPromise = fetch('/data/sample-catalog.json')
-        .then((r) => {
-          if (!r.ok) throw new Error('Could not load products');
-          return r.json();
-        });
+  /** GET a JSON url (cached). Throws an Error with a friendly message on failure. */
+  function get(url) {
+    if (!cache.has(url)) {
+      cache.set(url, request(url).catch((err) => { cache.delete(url); throw err; }));
     }
-    return catalogPromise;
+    return cache.get(url);
+  }
+
+  /** POST JSON and return the JSON reply. */
+  function post(url, body) {
+    return request(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  }
+
+  async function request(url, options) {
+    let res;
+    try {
+      res = await fetch(url, options);
+    } catch {
+      throw new Error('No internet connection. Please check and try again.');
+    }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Sorry, something went wrong. Please try again.');
+    return data;
   }
 
   // ---------- Catalogue ----------
 
-  async function settings() {
-    return (await catalog()).settings;
+  const settings = () => get('/api/settings');
+  const categories = () => get('/api/categories');
+  const combos = () => get('/api/combos');
+  const banners = () => get('/api/banners');
+
+  /** Products. Filters: { category, q, featured, deal, ids: [], limit } */
+  function products(filter = {}) {
+    const p = new URLSearchParams();
+    if (filter.category) p.set('category', filter.category);
+    if (filter.q) p.set('q', filter.q);
+    if (filter.featured) p.set('featured', '1');
+    if (filter.deal) p.set('deal', '1');
+    if (filter.ids) p.set('ids', filter.ids.join(','));
+    if (filter.limit) p.set('limit', filter.limit);
+    const qs = p.toString();
+    return get('/api/products' + (qs ? '?' + qs : ''));
   }
 
-  async function categories() {
-    return (await catalog()).categories.slice().sort((a, b) => a.sort - b.sort);
-  }
-
-  /**
-   * List products. Filters: { category, q, featured, deal }
-   * Search matches name, category name and Hindi category name.
-   */
-  async function products(filter = {}) {
-    const data = await catalog();
-    const q = (filter.q || '').trim().toLowerCase();
-    const catNames = Object.fromEntries(data.categories.map((c) => [c.id, `${c.name} ${c.name_hi}`.toLowerCase()]));
-    return data.products.filter((p) =>
-      (!filter.category || p.category === filter.category) &&
-      (!filter.featured || p.featured) &&
-      (!filter.deal || p.deal) &&
-      (!q || `${p.name} ${p.weight} ${catNames[p.category]}`.toLowerCase().includes(q))
-    ).sort((a, b) => a.sort - b.sort);
-  }
-
+  /** One product: returns { product, fbt: [...], similar: [...] } or null if not found. */
   async function product(id) {
-    return (await catalog()).products.find((p) => p.id === id) || null;
+    try {
+      return await get('/api/products/' + encodeURIComponent(id));
+    } catch {
+      return null;
+    }
   }
 
-  async function combos() {
-    return (await catalog()).combos;
+  /** Price the cart on the server. { items, fulfilment, coupon_code, phone } */
+  function quote(body) {
+    return post('/api/quote', body);
   }
 
-  async function banners() {
-    return (await catalog()).banners;
-  }
-
-  /** Check a coupon code against an order subtotal. Returns the coupon or throws. */
-  async function coupon(code) {
-    const c = (await catalog()).coupons.find((x) => x.code === String(code).trim().toUpperCase());
-    if (!c) throw new Error('This coupon code is not valid.');
-    return c;
-  }
-
-  // ---------- Orders (Phase 1 demo: saved in this browser only) ----------
+  // ---------- Orders (STILL A DEMO until Phase 3: saved in this browser only) ----------
 
   const DEMO_KEY = 'sds_demo_orders';
   const readDemo = () => { try { return JSON.parse(localStorage.getItem(DEMO_KEY)) || []; } catch { return []; } };
@@ -77,22 +79,18 @@ const API = (() => {
 
   /** Place an order. Returns { order_no, phone }. */
   async function placeOrder(payload) {
-    // Honeypot: real people never fill the hidden "website" field
-    if (payload.website) throw new Error('Sorry, the order could not be placed.');
-    const s = await settings();
-    const quote = await Pricing.quote({ ...payload, settings: s });
-    if (quote.errors.length) throw new Error(quote.errors[0]);
+    if (payload.website) throw new Error('Sorry, the order could not be placed.'); // honeypot
+    const q = await quote(payload);
+    if (q.errors.length) throw new Error(q.errors[0]);
     const orderNo = 'SDS' + Date.now().toString().slice(-6);
-    const order = {
+    const list = readDemo();
+    list.push({
       order_no: orderNo,
       created_at: new Date().toISOString(),
       status: payload.payment_method === 'upi' ? 'awaiting_payment' : 'new',
       ...payload,
-      ...quote,
-      history: [{ status: 'new', at: new Date().toISOString() }],
-    };
-    const list = readDemo();
-    list.push(order);
+      ...q,
+    });
     saveDemo(list);
     return { order_no: orderNo, phone: payload.customer.phone };
   }
@@ -116,19 +114,18 @@ const API = (() => {
     if (!o) throw new Error('Order not found.');
     o.utr = utr;
     o.status = 'payment_submitted';
-    o.history.push({ status: 'payment_submitted', at: new Date().toISOString() });
     saveDemo(list);
     return o;
   }
 
   /** Bulk order enquiry. */
   async function bulkEnquiry(payload) {
-    console.info('[Phase 1 demo] Bulk enquiry (not sent anywhere yet):', payload);
+    console.info('[demo] Bulk enquiry (saved to admin from Phase 3):', payload);
     return { ok: true };
   }
 
   return {
-    settings, categories, products, product, combos, banners, coupon,
+    settings, categories, products, product, combos, banners, quote,
     placeOrder, trackOrder, ordersByPhone, submitUtr, bulkEnquiry,
   };
 })();

@@ -4,7 +4,12 @@
   "private": true,
   "description": "Online grocery store for Subhash Departmental Store, Ludhiana. Built by Upward Web.",
   "scripts": {
-    "dev": "wrangler pages dev public --port 8788"
+    "dev": "wrangler pages dev --port 8788",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
+    "db:seed:local": "wrangler d1 execute DB --local --file=seed/sample-data.sql",
+    "db:seed:remote": "wrangler d1 execute DB --remote --file=seed/sample-data.sql",
+    "db:reset:local": "node -e \"require('fs').rmSync('.wrangler/state/v3/d1',{recursive:true,force:true})\" && npm run db:migrate:local && npm run db:seed:local"
   },
   "devDependencies": {
     "wrangler": "^4.40.0"

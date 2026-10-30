@@ -4,7 +4,7 @@
    - Delivery or store pickup, address + pincode check, time slot
    - Coupon, free-delivery progress bar, minimum order
    - Payment: UPI / Cash on Delivery (Pay at Store for pickup) / Razorpay (if enabled)
-   Totals here are only for display — the server recalculates them.
+   Totals come from the server (POST /api/quote), never from the browser.
    ===================================================================== */
 
 (async function checkoutPage() {
@@ -42,8 +42,17 @@
   form.querySelectorAll('[name="fulfilment"]').forEach((r) => r.addEventListener('change', onFulfilmentChange));
 
   // ---------- Order summary ----------
+  let seq = 0; // ignores slow, out-of-date price replies
   async function renderSummary() {
-    const q = await Pricing.quote({ settings: s, fulfilment: fulfilment(), coupon_code: couponCode });
+    const mySeq = ++seq;
+    let q;
+    try {
+      q = await Pricing.quote({ fulfilment: fulfilment(), coupon_code: couponCode, phone: cleanPhone(form.phone.value) });
+    } catch (err) {
+      UI.toast(err.message, 'danger');
+      return;
+    }
+    if (mySeq !== seq) return;
     lastQuote = q;
 
     if (!q.lines.length) {
@@ -117,6 +126,8 @@
     return ok;
   }
   form.addEventListener('input', (e) => e.target.classList.remove('is-invalid'));
+  // A first-order coupon depends on the phone number, so re-check it
+  form.phone.addEventListener('change', () => { if (couponCode) renderSummary(); });
 
   // ---------- Place order ----------
   form.addEventListener('submit', async (e) => {

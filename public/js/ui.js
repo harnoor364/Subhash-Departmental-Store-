@@ -234,12 +234,19 @@ const UI = (() => {
         <div class="progress-bar" style="width:${pct}%"></div></div></div>`;
   }
 
-  async function renderDrawer() {
+  let drawerSeq = 0; // ignores slow, out-of-date price replies
+
+  /** Draw the cart drawer. Only runs while the drawer is open (or opening). */
+  async function renderDrawer(force) {
+    const drawer = document.getElementById('cartDrawer');
     const body = document.querySelector('[data-cart-body]');
     if (!body) return;
+    if (force !== true && !drawer.classList.contains('show') && !drawer.classList.contains('showing')) return;
+    if (!body.innerHTML.trim()) body.innerHTML = '<div class="text-center p-5"><span class="spinner-border text-secondary"></span></div>';
+    const seq = ++drawerSeq;
     try {
-      const s = await getSettings();
-      const q = await Pricing.quote({ settings: s });
+      const [s, q] = await Promise.all([getSettings(), Pricing.quote()]);
+      if (seq !== drawerSeq) return;
       if (!q.lines.length) {
         body.innerHTML = `<div class="empty-state">
           <i class="bi bi-basket"></i><p>Your cart is empty</p>
@@ -295,7 +302,7 @@ const UI = (() => {
     const show = debounce(async () => {
       const q = input.value.trim();
       if (q.length < 2) { box.hidden = true; return; }
-      const list = (await API.products({ q })).slice(0, 6);
+      const list = await API.products({ q, limit: 6 });
       box.innerHTML = list.length
         ? list.map((p) => `<a href="/product?p=${encodeURIComponent(p.id)}">
             <span class="ss-img">${Art.productImage(p)}</span>
@@ -410,7 +417,7 @@ const UI = (() => {
     refreshQtySlots();
 
     window.addEventListener('cart:change', () => { refreshQtySlots(); renderDrawer(); });
-    document.getElementById('cartDrawer')?.addEventListener('show.bs.offcanvas', renderDrawer);
+    document.getElementById('cartDrawer')?.addEventListener('show.bs.offcanvas', () => renderDrawer(true));
 
     applySettings().catch(console.error);
     fillCategoryLinks().catch(console.error);

@@ -8,14 +8,15 @@
   const box = $('[data-product]');
 
   try {
-    const p = await API.product(qp('p'));
-    if (!p) {
+    const data = await API.product(qp('p'));
+    if (!data) {
       box.innerHTML = `<div class="empty-state"><i class="bi bi-question-circle"></i>
         <p>Sorry, this product is not available.</p><a class="btn btn-brand" href="/category">Browse products</a></div>`;
       return;
     }
 
-    const [categories, all] = await Promise.all([API.categories(), API.products()]);
+    const { product: p, fbt, similar } = data;
+    const categories = await API.categories();
     const cat = categories.find((c) => c.id === p.category);
     const off = percentOff(p.mrp, p.price);
 
@@ -52,14 +53,12 @@
     UI.track('view_item', { currency: 'INR', value: p.price, items: [{ item_id: p.id, item_name: p.name, price: p.price }] });
 
     // Frequently bought together
-    const fbt = (p.fbt || []).map((id) => all.find((x) => x.id === id)).filter(Boolean);
     if (fbt.length) {
       $('[data-fbt]').innerHTML = fbt.map(UI.productCard).join('');
       $('[data-fbt-section]').hidden = false;
     }
 
     // More from this category
-    const similar = all.filter((x) => x.category === p.category && x.id !== p.id && !fbt.includes(x));
     if (similar.length) {
       $('[data-similar]').innerHTML = similar.map(UI.productCard).join('');
       $('[data-similar-link]').href = `/category?c=${p.category}`;
