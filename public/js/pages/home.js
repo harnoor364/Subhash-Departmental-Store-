@@ -11,22 +11,25 @@
   renderGallery();
   renderWhyUs();
 
+  // ---- 2. Ask the server for everything AT THE SAME TIME (faster than one after another)
   // Used only if the settings can't be loaded from the server
   const FALLBACK_SETTINGS = { store_open: true, open_time: '', close_time: '22:00', phone: '',
     walkthrough_type: 'video', google_review_link: '' };
-  const settings = await UI.getSettings().catch((err) => { console.error(err); return FALLBACK_SETTINGS; });
+  const safe = (promise) => promise.catch((err) => { console.error('Homepage data failed:', err); return null; });
+  const settingsReq = UI.getSettings().catch((err) => { console.error(err); return FALLBACK_SETTINGS; });
+  const dataReq = Promise.all([safe(API.categories()), safe(API.products()), safe(API.combos()), safe(API.banners())]);
+
+  const settings = await settingsReq;
   renderReviews(settings);
   renderVisitUs(settings);
 
-  // ---- 2. Sections that come from the database
-  const safe = (promise) => promise.catch((err) => { console.error('Homepage data failed:', err); return null; });
-  const [categories, products, combos, banners] = await Promise.all([
-    safe(API.categories()), safe(API.products()), safe(API.combos()), safe(API.banners()),
-  ]);
+  // ---- 3. Sections that come from the database
+  const [categories, products, combos, banners] = await dataReq;
   const byId = Object.fromEntries((products || []).map((p) => [p.id, p]));
 
-  // Hero: banners from the admin, or a welcome slide with the store photos
-  renderHero(banners && banners.hero.length ? banners.hero : [welcomeSlide()], byId);
+  // Hero: banners from the database. (If they can't load, the welcome slide
+  // already written in index.html simply stays.)
+  if (banners && banners.hero.length) renderHero(banners.hero, byId);
   renderWalkthrough(settings, categories || []);
 
   if (!products || !categories) {
@@ -43,15 +46,6 @@
   else $('#combos').hidden = true;
   $('[data-fresh]').innerHTML = products.filter((p) => p.category === 'fruits-vegetables').map(UI.productCard).join('');
 
-  /** Slide shown when no banners can be loaded: uses the photos from config.js */
-  function welcomeSlide() {
-    return {
-      title: `Welcome to ${CONFIG.storeName}`,
-      subtitle: 'Your neighbourhood store on Pakhowal Road — now online. Home delivery & in-store pickup.',
-      button: 'Start shopping', link: '/category', color: '#1B2140',
-      image_url: CONFIG.insidePhoto, side_image_url: CONFIG.storePhoto, products: [],
-    };
-  }
 
   // ---------------------------------------------------------- 4. Hero
   function renderHero(slides, byId) {
@@ -166,7 +160,7 @@
     // With a "link" the photo opens that page (e.g. a category); otherwise the full photo
     $('[data-gallery]').innerHTML = photos.map((p) => `
       <a class="gallery-item" href="${esc(p.link || p.src)}" ${p.link ? '' : 'target="_blank" rel="noopener"'}>
-        <img src="${esc(p.src)}" alt="${esc(p.caption || CONFIG.storeName)}" loading="lazy" decoding="async">
+        <img class="fade-in" src="${esc(p.src)}" alt="${esc(p.caption || CONFIG.storeName)}" loading="lazy" decoding="async">
         ${p.caption ? `<span>${esc(p.caption)}${p.link ? ' <i class="bi bi-arrow-right-short"></i>' : ''}</span>` : ''}
       </a>`).join('');
     $('#gallery').hidden = false;

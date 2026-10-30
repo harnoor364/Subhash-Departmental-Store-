@@ -186,6 +186,22 @@ img { max-width: 100%; }
 }
 .aisle-chips a:hover { background: var(--brand); color: #fff; }
 
+/* ---------- Loading look ---------- */
+/* While a product area is still empty (waiting for the server), show a soft
+   shimmering block instead of blank space. Disappears as soon as items arrive. */
+.p-grid:empty, .h-scroll:empty, .cat-grid:empty, .combo-grid:empty, .promo-grid:empty {
+  min-height: 240px; border-radius: var(--radius);
+  background: linear-gradient(90deg, var(--card) 25%, var(--card-2) 50%, var(--card) 75%);
+  background-size: 200% 100%; animation: shimmer 1.4s ease-in-out infinite;
+}
+.cat-grid:empty, .promo-grid:empty { min-height: 140px; }
+@keyframes shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+
+/* Photos fade in when loaded (class added by ui.js) instead of popping in */
+img.fade-in { opacity: 0; transition: opacity .35s ease; }
+img.fade-in.is-loaded { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { img.fade-in { opacity: 1; transition: none; } .p-grid:empty, .h-scroll:empty { animation: none; } }
+
 /* ---------- Photo gallery ---------- */
 .gallery {
   display: grid; grid-auto-flow: column; grid-auto-columns: 78%; gap: 12px;

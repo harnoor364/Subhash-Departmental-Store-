@@ -38,6 +38,8 @@
   --bs-body-bg: var(--bg);
   --bs-link-color: var(--brand);
   --bs-link-hover-color: var(--brand-dark);
+  --bs-link-color-rgb: 245, 93, 44;        /* same as --brand, as R, G, B numbers (Bootstrap needs both) */
+  --bs-link-hover-color-rgb: 217, 72, 26;  /* same as --brand-dark */
   --bs-border-color: var(--border);
 }
 

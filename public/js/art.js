@@ -134,7 +134,7 @@ const Art = (() => {
    */
   function productImage(item) {
     if (item.image_url) {
-      return `<img src="${esc(item.image_url)}" alt="${esc(item.name)}" loading="lazy" decoding="async">`;
+      return `<img class="fade-in" src="${esc(item.image_url)}" alt="${esc(item.name)}" loading="lazy" decoding="async">`;
     }
     return svg(item.art, item.name);
   }

@@ -408,6 +408,12 @@ const UI = (() => {
     if (head) head.innerHTML = headerHTML();
     if (foot) foot.innerHTML = footerHTML();
 
+    // Photos with class "fade-in" appear smoothly once downloaded (or if they fail)
+    const reveal = (e) => { if (e.target.classList?.contains('fade-in')) e.target.classList.add('is-loaded'); };
+    document.addEventListener('load', reveal, true);
+    document.addEventListener('error', reveal, true);
+    document.querySelectorAll('img.fade-in').forEach((img) => { if (img.complete && img.src) img.classList.add('is-loaded'); });
+
     document.querySelectorAll('[data-store-photo]').forEach((img) => {
       img.src = CONFIG.storePhoto;
       img.alt = CONFIG.storePhotoAlt;

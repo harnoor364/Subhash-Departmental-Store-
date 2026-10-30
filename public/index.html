@@ -19,6 +19,9 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link href="/css/theme.css" rel="stylesheet">
   <link href="/css/store.css" rel="stylesheet">
+  <!-- Start downloading the top photos immediately (they're in the first screen) -->
+  <link rel="preload" as="image" href="/img/gallery/store-inside.jpg">
+  <link rel="preload" as="image" href="/img/gallery/store-front.jpg">
   <script src="/js/theme-init.js"></script>
 
   <!-- Business info for Google (local SEO). Keep in sync with config.js -->
@@ -50,7 +53,18 @@
       <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000">
         <div class="carousel-indicators" data-hero-dots></div>
         <div class="carousel-inner" data-hero-slides>
-          <div class="carousel-item active"><div class="hero-slide" style="background:var(--brand)"></div></div>
+          <!-- Welcome slide is written here so it shows INSTANTLY. home.js then
+               replaces the slides with the banners from the database. -->
+          <div class="carousel-item active">
+            <div class="hero-slide has-photo" style="background:linear-gradient(100deg, rgba(27,33,64,.92) 25%, rgba(27,33,64,.45)), url('/img/gallery/store-inside.jpg') center / cover">
+              <div>
+                <h2>Welcome to Subhash Departmental Store</h2>
+                <p>Your neighbourhood store on Pakhowal Road — now online. Home delivery &amp; in-store pickup.</p>
+                <a href="/category" class="btn">Start shopping <i class="bi bi-arrow-right"></i></a>
+              </div>
+              <div class="hero-art"><img class="hero-photo" src="/img/gallery/store-front.jpg" alt="Subhash Departmental Store shop front"></div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="closed-note alert alert-warning mt-3 mb-0">
@@ -64,7 +78,11 @@
         <div class="section-head">
           <div><h2>Take a Walk Inside Our Store</h2><p>See the aisles before you visit — then shop them online.</p></div>
         </div>
-        <div class="walk-media" data-walk-media></div>
+        <div class="walk-media" data-walk-media>
+          <div class="walk-soon" style="background-image:linear-gradient(rgba(27,33,64,.45),rgba(27,33,64,.8)),url('/img/gallery/store-inside.jpg')">
+            <div><i class="bi bi-camera-video"></i><h3>Virtual store tour coming soon</h3><p>Meanwhile, shop every aisle online below.</p></div>
+          </div>
+        </div>
         <div class="aisle-chips" data-aisles></div>
       </div>
     </section>
@@ -164,7 +182,7 @@
       <div class="section-head"><div><h2>Visit Us</h2><p>Shop in person or pick up your online order</p></div></div>
       <div class="visit">
         <div class="panel">
-          <img class="store-photo" data-store-photo alt="" loading="lazy" width="408" height="296">
+          <img class="store-photo fade-in" data-store-photo alt="" loading="lazy" width="408" height="296">
           <dl data-visit></dl>
           <a class="btn btn-brand" data-directions target="_blank" rel="noopener"><i class="bi bi-sign-turn-right"></i> Get Directions</a>
           <a class="btn btn-outline-brand ms-1" href="#" data-call><i class="bi bi-telephone"></i> Call store</a>
