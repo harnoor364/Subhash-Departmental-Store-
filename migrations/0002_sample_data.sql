@@ -1,14 +1,13 @@
 -- =====================================================================
--- seed/sample-data.sql — SAMPLE products, settings, banners & coupons
+-- 0002_sample_data.sql — SAMPLE products, settings, banners & coupons
 -- ---------------------------------------------------------------------
 -- !! ALL PRICES HERE ARE SAMPLE PRICES FOR TESTING ONLY !!
 -- Product names are generic (no real brands).
 --
--- Run locally:   npm run db:seed:local
--- Run on live:   npm run db:seed:remote   (only once, to start with demo data)
--- Safe to re-run: it replaces the sample rows with the same ids.
--- When real products are added from the admin panel, set the setting
--- 'sample_mode' to false (Admin > Settings) to hide the "Demo mode" strip.
+-- Like every migration, this runs ONCE on a new database (automatically).
+-- Real products are then managed from the admin panel (Phase 4).
+-- When the real catalogue is ready, set 'sample_mode' to false in
+-- Admin > Settings to hide the yellow "Demo mode" strip.
 -- =====================================================================
 
 -- ---------- Settings (value is JSON) ----------

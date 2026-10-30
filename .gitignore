@@ -1,9 +1,16 @@
 # Secrets — NEVER commit these
-.dev.vars
 .env
+.env.local
+.env.*.local
+.env.development.local
 
-# Dependencies and local Cloudflare state
+# Local test database
+local.db
+local.db-*
+
+# Dependencies, Vercel and old Cloudflare local state
 node_modules/
+.vercel/
 .wrangler/
 
 # OS / editor junk

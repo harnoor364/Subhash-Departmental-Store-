@@ -2,8 +2,10 @@
 -- 0001_init.sql — first version of the database
 -- ---------------------------------------------------------------------
 -- Migrations run in number order and each runs only ONCE per database.
--- Never edit a migration that has already been applied to the live
--- database — add a new numbered file instead (see CHANGES.md).
+-- They run AUTOMATICALLY the first time the API is used after a deploy
+-- (see lib/migrate.js), or by hand with: npm run db:migrate
+-- Never edit a migration that has already run on the live database —
+-- add a new numbered file instead (see CHANGES.md).
 --
 -- Money is stored in rupees (REAL, e.g. 34.5). Dates are ISO text in UTC.
 -- Yes/no columns are INTEGER 1/0.

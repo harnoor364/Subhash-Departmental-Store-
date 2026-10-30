@@ -8,12 +8,12 @@
      ?limit=20            max results (default 500)
    ===================================================================== */
 
-import { json } from '../../_lib/http.js';
-import { text, itemId } from '../../_lib/validate.js';
-import { toProduct } from '../../_lib/catalog.js';
+import { route } from '../../lib/handler.js';
+import { json } from '../../lib/http.js';
+import { text, itemId } from '../../lib/validate.js';
+import { toProduct } from '../../lib/catalog.js';
 
-export async function onRequestGet({ request, env }) {
-  const url = new URL(request.url);
+export const GET = route(async ({ url, db }) => {
   const p = url.searchParams;
 
   let sql = `SELECT p.* FROM products p JOIN categories c ON c.id = p.category
@@ -39,6 +39,6 @@ export async function onRequestGet({ request, env }) {
   sql += ' ORDER BY p.sort, p.name LIMIT ?';
   binds.push(limit);
 
-  const { results } = await env.DB.prepare(sql).bind(...binds).all();
+  const { results } = await db.prepare(sql).bind(...binds).all();
   return json(results.map(toProduct), { cache: words.length ? 0 : 60 });
-}
+});
