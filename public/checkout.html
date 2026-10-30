@@ -58,11 +58,13 @@
             <label class="choice"><input type="radio" name="fulfilment" value="pickup">
               <span><b><i class="bi bi-shop"></i> Store pickup</b><small>Collect from Pakhowal Road · Free</small></span></label>
           </div>
+          <!-- Shown only for Store pickup: where to collect the order -->
+          <div class="alert alert-light border mb-3" data-pickup-address hidden></div>
           <div class="row g-3" data-address-fields>
             <div class="col-12">
               <label class="form-label" for="address">House no., street, area *</label>
               <textarea class="form-control" id="address" name="address" rows="2" maxlength="200" autocomplete="street-address"></textarea>
-              <div class="invalid-feedback">Please enter your delivery address.</div>
+              <div class="invalid-feedback">Please enter your house no. and street / colony (at least 5 letters).</div>
             </div>
             <div class="col-sm-7">
               <label class="form-label" for="landmark">Landmark</label>

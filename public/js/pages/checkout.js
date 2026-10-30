@@ -21,7 +21,7 @@
   // ---------- Set up the form from settings ----------
   $('[data-delivery-note]').textContent =
     `${rupees(s.delivery_charge)} · FREE above ${rupees(s.free_delivery_above)}`;
-  $('[data-pincode-help]').textContent = `We deliver to: ${s.delivery_pincodes.join(', ')}`;
+  $('[data-pincode-help]').textContent = s.delivery_pincodes.length ? `We deliver to: ${s.delivery_pincodes.join(', ')}` : '';
   $('[data-slots]').innerHTML = s.delivery_slots.map((x) => `<option>${esc(x)}</option>`).join('');
   // Show only the payment options that are set up; select the first one
   const payOn = { razorpay: !!s.razorpay_available, upi: !!s.upi_id, cod: true };
@@ -36,11 +36,18 @@
     }
   } catch {}
 
+  // Store address for pickup orders (from config.js)
+  const a = CONFIG.address;
+  $('[data-pickup-address]').innerHTML = `<i class="bi bi-geo-alt-fill text-danger"></i>
+    <b>Pick up from:</b> ${esc(CONFIG.storeName)}, ${esc(a.line1)}, ${esc(a.line2)}, ${esc(a.city)} ${esc(a.pincode)}
+    · <a href="${esc(CONFIG.mapsDirectionsUrl)}" target="_blank" rel="noopener">Directions</a>`;
+
   const fulfilment = () => form.fulfilment.value;
 
   function onFulfilmentChange() {
     const pickup = fulfilment() === 'pickup';
     $('[data-address-fields]').hidden = pickup;
+    $('[data-pickup-address]').hidden = !pickup;
     $('[data-slot-label]').textContent = pickup ? 'Pickup time' : 'Delivery time';
     $('[data-cod-label]').textContent = pickup ? 'Pay at Store' : 'Cash on Delivery';
     renderSummary();
@@ -118,13 +125,13 @@
     mark(form.phone, !!cleanPhone(form.phone.value));
 
     if (fulfilment() === 'delivery') {
-      mark(form.address, form.address.value.trim().length >= 8);
+      mark(form.address, form.address.value.trim().length >= 5);
       const pin = form.pincode.value.trim();
       const pinMsg = $('[data-pincode-msg]');
       if (!/^\d{6}$/.test(pin)) {
         pinMsg.textContent = 'Please enter a valid 6-digit pincode.';
         mark(form.pincode, false);
-      } else if (!s.delivery_pincodes.includes(pin)) {
+      } else if (s.delivery_pincodes.length && !s.delivery_pincodes.includes(pin)) { // empty list = any pincode
         pinMsg.textContent = `Sorry, we don't deliver to ${pin} yet. We deliver to: ${s.delivery_pincodes.join(', ')}. Please choose Store pickup.`;
         mark(form.pincode, false);
       } else {
