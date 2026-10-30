@@ -6,27 +6,51 @@
 (async function homePage() {
   const $ = (sel) => document.querySelector(sel);
 
-  try {
-    const [settings, categories, products, combos, banners] = await Promise.all([
-      UI.getSettings(), API.categories(), API.products(), API.combos(), API.banners(),
-    ]);
-    const byId = Object.fromEntries(products.map((p) => [p.id, p]));
+  // ---- 1. Sections that DON'T need the database: always shown,
+  //         even if the server or database is down
+  renderGallery();
+  renderWhyUs();
 
-    renderHero(banners.hero, byId);
-    renderWalkthrough(settings, categories);
-    renderGallery();
-    renderDeals(products.filter((p) => p.deal));
-    renderCategoryTiles(categories, byId);
-    $('[data-featured]').innerHTML = products.filter((p) => p.featured).slice(0, 10).map(UI.productCard).join('');
-    renderPromos(banners.promo, byId);
-    $('[data-combos]').innerHTML = combos.map(UI.comboCard).join('');
-    $('[data-fresh]').innerHTML = products.filter((p) => p.category === 'fruits-vegetables').map(UI.productCard).join('');
-    renderWhyUs();
-    renderReviews(settings);
-    renderVisitUs(settings);
-  } catch (err) {
-    console.error('Homepage failed to load:', err);
-    UI.toast('Sorry, something went wrong loading the store. Please refresh.', 'danger');
+  // Used only if the settings can't be loaded from the server
+  const FALLBACK_SETTINGS = { store_open: true, open_time: '', close_time: '22:00', phone: '',
+    walkthrough_type: 'video', google_review_link: '' };
+  const settings = await UI.getSettings().catch((err) => { console.error(err); return FALLBACK_SETTINGS; });
+  renderReviews(settings);
+  renderVisitUs(settings);
+
+  // ---- 2. Sections that come from the database
+  const safe = (promise) => promise.catch((err) => { console.error('Homepage data failed:', err); return null; });
+  const [categories, products, combos, banners] = await Promise.all([
+    safe(API.categories()), safe(API.products()), safe(API.combos()), safe(API.banners()),
+  ]);
+  const byId = Object.fromEntries((products || []).map((p) => [p.id, p]));
+
+  // Hero: banners from the admin, or a welcome slide with the store photos
+  renderHero(banners && banners.hero.length ? banners.hero : [welcomeSlide()], byId);
+  renderWalkthrough(settings, categories || []);
+
+  if (!products || !categories) {
+    ['#deals', '#categories', '#featured', '#combos', '#fresh'].forEach((id) => { $(id).hidden = true; });
+    $('[data-promos]').closest('section').hidden = true;
+    UI.toast('Products could not load right now. Please try again in a moment.', 'danger');
+    return;
+  }
+  renderDeals(products.filter((p) => p.deal));
+  renderCategoryTiles(categories, byId);
+  $('[data-featured]').innerHTML = products.filter((p) => p.featured).slice(0, 10).map(UI.productCard).join('');
+  if (banners) renderPromos(banners.promo, byId);
+  if (combos) $('[data-combos]').innerHTML = combos.map(UI.comboCard).join('');
+  else $('#combos').hidden = true;
+  $('[data-fresh]').innerHTML = products.filter((p) => p.category === 'fruits-vegetables').map(UI.productCard).join('');
+
+  /** Slide shown when no banners can be loaded: uses the photos from config.js */
+  function welcomeSlide() {
+    return {
+      title: `Welcome to ${CONFIG.storeName}`,
+      subtitle: 'Your neighbourhood store on Pakhowal Road — now online. Home delivery & in-store pickup.',
+      button: 'Start shopping', link: '/category', color: '#1B2140',
+      image_url: CONFIG.insidePhoto, side_image_url: CONFIG.storePhoto, products: [],
+    };
   }
 
   // ---------------------------------------------------------- 4. Hero
@@ -66,7 +90,7 @@
     if (type === 'none') { section.hidden = true; return; }
 
     // "Shop this aisle" buttons jump to the matching category
-    $('[data-aisles]').innerHTML = '<span class="small text-muted align-self-center me-1">Shop this aisle:</span>' +
+    $('[data-aisles]').innerHTML = !categories.length ? '' : '<span class="small text-muted align-self-center me-1">Shop this aisle:</span>' +
       categories.map((c) => `<a href="/category?c=${c.id}">${esc(c.name)}</a>`).join('');
 
     const ytId = /^[\w-]{11}$/.test(s.walkthrough_youtube_id || '') ? s.walkthrough_youtube_id : '';
