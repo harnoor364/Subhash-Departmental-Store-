@@ -247,6 +247,13 @@
       <dt><i class="bi bi-telephone-fill"></i></dt><dd>${s.phone ? `<a href="tel:+91${esc(s.phone)}">${esc(s.phone)}</a>` : '<span class="text-muted">Phone number coming soon</span>'}</dd>`;
     $('[data-directions]').href = CONFIG.mapsDirectionsUrl;
 
+    // Social media icons under the store details
+    const social = UI.socialLinks('social-link-lg');
+    if (social) {
+      $('[data-visit-social-links]').innerHTML = social;
+      $('[data-visit-social]').hidden = false;
+    }
+
     // Load the Google Map only when it scrolls into view
     const map = $('[data-map]');
     const io = new IntersectionObserver((e) => {
