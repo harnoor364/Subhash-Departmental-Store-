@@ -191,7 +191,8 @@ img { max-width: 100%; }
   display: grid; grid-auto-flow: column; grid-auto-columns: 78%; gap: 12px;
   overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 6px;
 }
-@media (min-width: 768px) { .gallery { grid-auto-columns: calc((100% - 24px) / 3); } }
+@media (min-width: 576px) { .gallery { grid-auto-columns: calc((100% - 12px) / 2); } }
+@media (min-width: 992px) { .gallery { grid-auto-columns: calc((100% - 36px) / 4); } }
 .gallery-item {
   position: relative; display: block; border-radius: var(--radius); overflow: hidden;
   box-shadow: var(--shadow); scroll-snap-align: start; aspect-ratio: 4 / 3; background: var(--card-2);

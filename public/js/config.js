@@ -38,11 +38,25 @@ const CONFIG = {
 
   // "Photos from our store" gallery on the homepage.
   // To add a photo: put the file in public/img/gallery/ and add a line here.
+  //   src     = the photo
+  //   caption = text on the photo
+  //   link    = (optional) where tapping it goes, e.g. a category page.
+  //             Without a link, tapping opens the full photo.
   // Empty list = section hidden.
   gallery: [
     { src: '/img/gallery/store-front.jpg', caption: 'Our store on Pakhowal Road' },
     { src: '/img/gallery/store-entrance.jpg', caption: 'Step inside — the front area as you enter' },
     { src: '/img/gallery/store-inside.jpg', caption: 'Wide aisles with everything you need' },
+    { src: '/img/gallery/aisle-atta-rice.jpg', caption: 'Atta, rice & dal', link: '/category?c=atta-dal-rice' },
+    { src: '/img/gallery/aisle-pantry.jpg', caption: 'Pantry essentials', link: '/category?c=masale' },
+    { src: '/img/gallery/aisle-namkeen.jpg', caption: 'Namkeen & snacks', link: '/category?c=snacks-biscuits' },
+    { src: '/img/gallery/aisle-treats.jpg', caption: 'Biscuits & treats', link: '/category?c=snacks-biscuits' },
+    { src: '/img/gallery/aisle-soaps.jpg', caption: 'Soaps & bath care', link: '/category?c=personal-care' },
+    { src: '/img/gallery/aisle-personal-care.jpg', caption: 'Personal care', link: '/category?c=personal-care' },
+    { src: '/img/gallery/aisle-cleaning.jpg', caption: 'Cleaning & detergents', link: '/category?c=cleaning' },
+    { src: '/img/gallery/aisle-household.jpg', caption: 'Household needs', link: '/category' },
+    { src: '/img/gallery/aisle-view.jpg', caption: 'Neatly stocked shelves' },
+    { src: '/img/gallery/store-floor.jpg', caption: 'Plenty of room to shop' },
   ],
 
   // Google Maps links (no API key needed)

@@ -139,10 +139,11 @@
   function renderGallery() {
     const photos = CONFIG.gallery || [];
     if (!photos.length) return;
+    // With a "link" the photo opens that page (e.g. a category); otherwise the full photo
     $('[data-gallery]').innerHTML = photos.map((p) => `
-      <a class="gallery-item" href="${esc(p.src)}" target="_blank" rel="noopener">
+      <a class="gallery-item" href="${esc(p.link || p.src)}" ${p.link ? '' : 'target="_blank" rel="noopener"'}>
         <img src="${esc(p.src)}" alt="${esc(p.caption || CONFIG.storeName)}" loading="lazy" decoding="async">
-        ${p.caption ? `<span>${esc(p.caption)}</span>` : ''}
+        ${p.caption ? `<span>${esc(p.caption)}${p.link ? ' <i class="bi bi-arrow-right-short"></i>' : ''}</span>` : ''}
       </a>`).join('');
     $('#gallery').hidden = false;
   }
@@ -185,10 +186,10 @@
       </a>`).join('');
   }
 
-  // ---------------------------------------------- 11. Fresh scroll arrows
+  // ------------------------------- Scroll arrows (fresh row + photo gallery)
   document.querySelectorAll('[data-scroll]').forEach((btn) => {
     btn.addEventListener('click', () => {
-      const row = $('[data-fresh]');
+      const row = $(btn.dataset.target || '[data-fresh]');
       row.scrollBy({ left: Number(btn.dataset.scroll) * row.clientWidth * 0.8, behavior: 'smooth' });
     });
   });
