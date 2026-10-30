@@ -62,7 +62,7 @@ const CONFIG = {
   // Social media profiles. Paste the full link (https://...) between the quotes.
   // Empty = that icon is hidden. Shown in the footer and on the Contact page.
   social: {
-    facebook: '',
+    facebook: 'https://www.facebook.com/subhashdepartmentalstore/',
     instagram: '',
     youtube: '',
     x: '',              // Twitter / X
