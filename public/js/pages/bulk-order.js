@@ -1,6 +1,6 @@
 /* =====================================================================
    pages/bulk-order.js — bulk order enquiry form
-   (From Phase 3 it is saved in the admin panel + sent to Telegram.)
+   Saved for the admin panel + Telegram alert to the owner.
    ===================================================================== */
 
 (function bulkPage() {

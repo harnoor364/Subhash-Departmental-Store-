@@ -4,9 +4,8 @@
    Pages never call fetch() themselves; they call API.something().
    So if a backend URL changes, this is the only file to edit.
 
-   PHASE 2: products, categories, settings, banners, combos and prices
-   come from the D1 database. ORDERS are still a browser-only demo
-   (localStorage) until Phase 3 adds the real order API.
+   Everything comes from the server and its database: products, prices,
+   settings, orders, payments and enquiries.
    ===================================================================== */
 
 const API = (() => {
@@ -71,61 +70,30 @@ const API = (() => {
     return post('/api/quote', body);
   }
 
-  // ---------- Orders (STILL A DEMO until Phase 3: saved in this browser only) ----------
+  // ---------- Orders ----------
 
-  const DEMO_KEY = 'sds_demo_orders';
-  const readDemo = () => { try { return JSON.parse(localStorage.getItem(DEMO_KEY)) || []; } catch { return []; } };
-  const saveDemo = (list) => localStorage.setItem(DEMO_KEY, JSON.stringify(list.slice(-30)));
+  /** Place an order. Returns { order } or { order, razorpay } for online payment. */
+  const placeOrder = (payload) => post('/api/orders', payload);
 
-  /** Place an order. Returns { order_no, phone }. */
-  async function placeOrder(payload) {
-    if (payload.website) throw new Error('Sorry, the order could not be placed.'); // honeypot
-    const q = await quote(payload);
-    if (q.errors.length) throw new Error(q.errors[0]);
-    const orderNo = 'SDS' + Date.now().toString().slice(-6);
-    const list = readDemo();
-    list.push({
-      order_no: orderNo,
-      created_at: new Date().toISOString(),
-      status: payload.payment_method === 'upi' ? 'awaiting_payment' : 'new',
-      ...payload,
-      ...q,
-    });
-    saveDemo(list);
-    return { order_no: orderNo, phone: payload.customer.phone };
-  }
+  /** After a Razorpay payment: let the server check it. Returns the updated order. */
+  const verifyRazorpay = (body) => post('/api/razorpay/verify', body);
 
-  /** Find one order by number + phone (both must match). */
-  async function trackOrder(orderNo, phone) {
-    const o = readDemo().find((x) => x.order_no === String(orderNo).trim().toUpperCase() && x.customer.phone === phone);
-    if (!o) throw new Error('No order found with this order number and phone number.');
-    return o;
-  }
+  /** One order (order number AND phone must match). Never cached — status changes. */
+  const trackOrder = (orderNo, phone) =>
+    request(`/api/orders/track?no=${encodeURIComponent(String(orderNo).trim().toUpperCase())}&phone=${encodeURIComponent(phone)}`);
 
-  /** All orders for a phone number, newest first. */
-  async function ordersByPhone(phone) {
-    return readDemo().filter((x) => x.customer.phone === phone).reverse();
-  }
+  /** All orders of a phone number (needs one of its order numbers as proof). */
+  const ordersByPhone = (phone, orderNo) =>
+    request(`/api/orders/history?phone=${encodeURIComponent(phone)}&no=${encodeURIComponent(String(orderNo).trim().toUpperCase())}`);
 
-  /** Customer says they paid by UPI and gives the UTR / reference number. */
-  async function submitUtr(orderNo, phone, utr) {
-    const list = readDemo();
-    const o = list.find((x) => x.order_no === orderNo && x.customer.phone === phone);
-    if (!o) throw new Error('Order not found.');
-    o.utr = utr;
-    o.status = 'payment_submitted';
-    saveDemo(list);
-    return o;
-  }
+  /** Customer paid by UPI and enters the UTR / reference number. */
+  const submitUtr = (orderNo, phone, utr) => post('/api/orders/utr', { order_no: orderNo, phone, utr });
 
   /** Bulk order enquiry. */
-  async function bulkEnquiry(payload) {
-    console.info('[demo] Bulk enquiry (saved to admin from Phase 3):', payload);
-    return { ok: true };
-  }
+  const bulkEnquiry = (payload) => post('/api/enquiries', payload);
 
   return {
     settings, categories, products, product, combos, banners, quote,
-    placeOrder, trackOrder, ordersByPhone, submitUtr, bulkEnquiry,
+    placeOrder, verifyRazorpay, trackOrder, ordersByPhone, submitUtr, bulkEnquiry,
   };
 })();

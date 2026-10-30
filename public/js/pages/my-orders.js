@@ -1,17 +1,23 @@
 /* =====================================================================
-   pages/my-orders.js — list past orders by phone number + "Reorder"
-   (No OTP: each order only shows items & status, never the full address.)
+   pages/my-orders.js — past orders + "Reorder"
+   Needs the phone number AND one order number of that phone (privacy,
+   without needing an OTP). Fills itself in on the phone that ordered.
    ===================================================================== */
 
 (function myOrdersPage() {
   const form = document.querySelector('[data-orders-form]');
   const out = document.querySelector('[data-orders]');
-  const SAVED_KEY = 'sds_customer';
+  const LAST_ORDER_KEY = 'sds_last_order';
   let orders = [];
 
-  async function load(phone) {
+  async function load(phone, orderNo) {
     out.innerHTML = '<div class="text-muted p-3">Loading…</div>';
-    orders = await API.ordersByPhone(phone);
+    try {
+      orders = await API.ordersByPhone(phone, orderNo);
+    } catch (err) {
+      out.innerHTML = `<div class="alert alert-warning">${esc(err.message)}</div>`;
+      return;
+    }
     if (!orders.length) {
       out.innerHTML = `<div class="empty-state"><i class="bi bi-receipt"></i><p>No orders found for this number.</p>
         <a class="btn btn-brand" href="/category">Start shopping</a></div>`;
@@ -47,13 +53,19 @@
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const phone = cleanPhone(form.phone.value);
+    const orderNo = form.order_no.value.trim().toUpperCase();
     form.phone.classList.toggle('is-invalid', !phone);
-    if (phone) load(phone);
+    form.order_no.classList.toggle('is-invalid', !orderNo);
+    if (phone && orderNo) load(phone, orderNo);
   });
 
-  // Use the number saved from the last checkout on this phone
+  // On the phone that placed the last order, fill in and load automatically
   try {
-    const saved = JSON.parse(localStorage.getItem(SAVED_KEY) || '{}');
-    if (saved.phone) { form.phone.value = saved.phone; load(saved.phone); }
+    const last = JSON.parse(localStorage.getItem(LAST_ORDER_KEY) || '{}');
+    if (last.phone && last.no) {
+      form.phone.value = last.phone;
+      form.order_no.value = last.no;
+      load(last.phone, last.no);
+    }
   } catch {}
 })();

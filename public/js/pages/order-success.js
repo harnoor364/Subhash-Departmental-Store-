@@ -1,7 +1,9 @@
 /* =====================================================================
    pages/order-success.js — "Thank you" page after placing an order
    URL: /order-success?no=<order number>&phone=<10-digit phone>
-   For UPI orders it shows the payment box and asks for the UTR number.
+   - Razorpay orders: shows "Paid" (or "payment pending")
+   - UPI-to-store orders: QR code + "Pay with GPay/PhonePe/Paytm" button,
+     then asks for the UTR / reference number
    ===================================================================== */
 
 (async function successPage() {
@@ -19,7 +21,11 @@
 
   function render(o, s) {
     const trackUrl = `/track?no=${encodeURIComponent(o.order_no)}&phone=${o.customer.phone}`;
-    const payLabel = { upi: 'UPI', cod: o.fulfilment === 'pickup' ? 'Pay at Store' : 'Cash on Delivery', razorpay: 'Online payment' }[o.payment_method];
+    const payLabel = {
+      razorpay: o.payment_status === 'paid' ? 'Paid online ✓' : 'Online payment pending',
+      upi: 'UPI',
+      cod: o.fulfilment === 'pickup' ? 'Pay at Store' : 'Cash on Delivery',
+    }[o.payment_method];
 
     box.innerHTML = `
       <div class="form-card text-center">
@@ -30,50 +36,66 @@
           Order number<br><b class="fs-4">${esc(o.order_no)}</b></div>
         <p class="mb-0">Total <b>${rupees(o.total)}</b> · ${esc(payLabel)} ·
           ${o.fulfilment === 'pickup' ? 'Store pickup' : 'Home delivery'} (${esc(o.slot)})</p>
-        ${isStoreOpen(s) ? '' : '<div class="alert alert-warning mt-3 mb-0">We\'re closed now — your order will be processed tomorrow morning.</div>'}
+        ${o.after_hours ? '<div class="alert alert-warning mt-3 mb-0"><i class="bi bi-moon"></i> We\'re closed now — your order will be processed tomorrow morning.</div>' : ''}
+        <p class="small text-muted mt-3 mb-0">Save your order number — you'll need it with your phone number to track this order.</p>
       </div>
-      <div data-upi-box></div>
+      <div data-pay-box></div>
       <div class="form-card">
         <h2><i class="bi bi-truck"></i> Order status</h2>
-        <div data-timeline>${statusTimeline(o)}</div>
+        <div>${statusTimeline(o)}</div>
         <div class="d-flex flex-wrap gap-2 mt-3">
           <a class="btn btn-brand" href="${trackUrl}">Track order</a>
           <a class="btn btn-outline-brand" href="/">Continue shopping</a>
         </div>
       </div>`;
 
-    if (['awaiting_payment', 'payment_submitted'].includes(o.status) && o.payment_method === 'upi') renderUpi(o, s);
+    if (o.payment_method === 'upi' && ['awaiting_payment', 'payment_submitted'].includes(o.status)) renderUpi(o, s);
+    if (o.payment_method === 'razorpay' && o.payment_status !== 'paid') {
+      document.querySelector('[data-pay-box]').innerHTML = `<div class="form-card">
+        <h2><i class="bi bi-hourglass-split"></i> Confirming your payment</h2>
+        <p class="mb-0">If your payment went through, this will update in a minute — refresh the page.
+        If money was deducted but the order still shows unpaid, please call or WhatsApp the store with your order number.</p></div>`;
+    }
   }
 
-  /** UPI payment box: pay button + UTR form. (QR code is added in Phase 3.) */
+  /** UPI to the store's own UPI ID: QR code + app button + UTR form. */
   function renderUpi(o, s) {
-    const upiBox = document.querySelector('[data-upi-box]');
+    const payBox = document.querySelector('[data-pay-box]');
     if (o.status === 'payment_submitted') {
-      upiBox.innerHTML = `<div class="form-card"><h2><i class="bi bi-hourglass-split"></i> Payment submitted</h2>
-        <p class="mb-0">Thanks! We've received your UPI reference <b>${esc(o.utr)}</b>. The store will verify it and confirm your order.</p></div>`;
+      payBox.innerHTML = `<div class="form-card"><h2><i class="bi bi-hourglass-split"></i> Payment submitted</h2>
+        <p class="mb-0">Thanks! We've received your UPI reference <b>${esc(o.utr)}</b>. The store will check it and confirm your order.</p></div>`;
       return;
     }
-    const upiLink = s.upi_id ? `upi://pay?pa=${encodeURIComponent(s.upi_id)}&pn=${encodeURIComponent(CONFIG.storeName)}&am=${o.total.toFixed(2)}&cu=INR&tn=${encodeURIComponent('Order ' + o.order_no)}` : '';
+    if (!s.upi_id) {
+      payBox.innerHTML = `<div class="form-card"><div class="placeholder-note">The store's UPI ID isn't set up yet. You can pay on delivery / at the store.</div></div>`;
+      return;
+    }
 
-    upiBox.innerHTML = `
+    // upi://pay link: store's UPI ID, store name, exact amount, order number in the note
+    const upiLink = `upi://pay?pa=${encodeURIComponent(s.upi_id)}&pn=${encodeURIComponent(CONFIG.storeName)}`
+      + `&am=${Number(o.total).toFixed(2)}&cu=INR&tn=${encodeURIComponent('Order ' + o.order_no)}`;
+    const isPhone = /Android|iPhone|iPad/i.test(navigator.userAgent);
+
+    payBox.innerHTML = `
       <div class="form-card">
         <h2><i class="bi bi-qr-code"></i> Pay ${rupees(o.total)} by UPI</h2>
-        ${upiLink ? `
-          <div data-upi-qr class="text-center mb-3"></div>
-          <a class="btn btn-brand btn-lg w-100 mb-2" href="${esc(upiLink)}">Pay with GPay / PhonePe / Paytm</a>
-          <p class="small text-muted text-center">UPI ID: <b>${esc(s.upi_id)}</b> · Note: Order ${esc(o.order_no)}</p>`
-        : `<div class="placeholder-note mb-3">The store's UPI ID will be added soon. For now you can pay on delivery / at the store.</div>`}
-        <form class="mt-2" data-utr-form novalidate>
+        ${isPhone ? `<a class="btn btn-brand btn-lg w-100 mb-3" href="${esc(upiLink)}">Pay with GPay / PhonePe / Paytm</a>
+          <p class="small text-muted text-center">Or scan this QR code from another phone:</p>` : '<p class="small text-muted text-center">Scan with any UPI app:</p>'}
+        <div class="d-flex justify-content-center mb-2"><div data-upi-qr class="p-2 bg-white rounded-3"></div></div>
+        <p class="small text-muted text-center">UPI ID: <b>${esc(s.upi_id)}</b> · Amount: <b>${rupees(o.total)}</b> · Note: Order ${esc(o.order_no)}</p>
+        <form class="mt-3" data-utr-form novalidate>
           <label class="form-label" for="utr">After paying, enter the UPI reference number (UTR)</label>
           <div class="input-group">
-            <input class="form-control" id="utr" name="utr" inputmode="numeric" maxlength="22" placeholder="12-digit UTR / reference no.">
+            <input class="form-control" id="utr" name="utr" maxlength="22" placeholder="12-digit UTR / reference no." autocomplete="off">
             <button class="btn btn-brand" type="submit">Submit</button>
           </div>
           <div class="form-text">Find it in your UPI app under the payment details.</div>
         </form>
       </div>`;
 
-    upiBox.querySelector('[data-utr-form]').addEventListener('submit', async (e) => {
+    drawQr(payBox.querySelector('[data-upi-qr]'), upiLink);
+
+    payBox.querySelector('[data-utr-form]').addEventListener('submit', async (e) => {
       e.preventDefault();
       const utr = e.target.utr.value.trim().toUpperCase();
       if (!/^[A-Z0-9]{6,22}$/.test(utr)) {
@@ -89,5 +111,16 @@
         UI.toast(err.message, 'danger');
       }
     });
+  }
+
+  /** Draw a QR code (library loaded from a CDN only on this page, only when needed). */
+  function drawQr(el, textToEncode) {
+    const draw = () => new window.QRCode(el, { text: textToEncode, width: 200, height: 200, correctLevel: window.QRCode.CorrectLevel.M });
+    if (window.QRCode) return draw();
+    const js = document.createElement('script');
+    js.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+    js.onload = draw;
+    js.onerror = () => { el.textContent = 'QR code could not load — use the UPI ID below.'; };
+    document.head.appendChild(js);
   }
 })();

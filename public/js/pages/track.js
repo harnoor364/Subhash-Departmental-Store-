@@ -39,10 +39,14 @@
     if (no && phone) lookup(no, phone);
   });
 
-  // Pre-fill from link
-  if (qp('no') && cleanPhone(qp('phone'))) {
-    form.order_no.value = qp('no');
-    form.phone.value = cleanPhone(qp('phone'));
-    lookup(qp('no').toUpperCase(), cleanPhone(qp('phone')));
+  // Pre-fill from the link, or from the last order placed on this phone
+  let last = {};
+  try { last = JSON.parse(localStorage.getItem('sds_last_order') || '{}'); } catch {}
+  const no = qp('no') || last.no || '';
+  const ph = cleanPhone(qp('phone')) || last.phone || '';
+  if (no && ph) {
+    form.order_no.value = no;
+    form.phone.value = ph;
+    lookup(no.toUpperCase(), ph);
   }
 })();

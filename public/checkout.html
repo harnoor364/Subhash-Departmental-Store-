@@ -82,13 +82,14 @@
 
         <div class="form-card">
           <h2><span class="step">3</span> Payment</h2>
+          <!-- Options appear only when set up: Razorpay (keys in Vercel), UPI (UPI ID in settings). COD always. -->
           <div class="choice-grid">
-            <label class="choice"><input type="radio" name="payment_method" value="upi" checked>
-              <span><b><i class="bi bi-qr-code"></i> Pay by UPI</b><small>GPay, PhonePe, Paytm or any UPI app</small></span></label>
-            <label class="choice"><input type="radio" name="payment_method" value="cod">
+            <label class="choice" data-pay-option="razorpay" hidden><input type="radio" name="payment_method" value="razorpay">
+              <span><b><i class="bi bi-shield-lock"></i> Pay online</b><small>UPI, cards, netbanking, wallets · secured by Razorpay</small></span></label>
+            <label class="choice" data-pay-option="upi" hidden><input type="radio" name="payment_method" value="upi">
+              <span><b><i class="bi bi-qr-code"></i> Pay by UPI to store</b><small>Scan QR / GPay, PhonePe, Paytm</small></span></label>
+            <label class="choice" data-pay-option="cod"><input type="radio" name="payment_method" value="cod">
               <span><b><i class="bi bi-cash-coin"></i> <span data-cod-label>Cash on Delivery</span></b><small>Pay cash or UPI when you receive</small></span></label>
-            <label class="choice" data-razorpay hidden><input type="radio" name="payment_method" value="razorpay">
-              <span><b><i class="bi bi-credit-card"></i> Card / Netbanking</b><small>Secure online payment</small></span></label>
           </div>
           <label class="form-label mt-3" for="notes">Notes for the store (optional)</label>
           <textarea class="form-control" id="notes" name="notes" rows="2" maxlength="300" placeholder="E.g. call before delivery, brand preference…"></textarea>

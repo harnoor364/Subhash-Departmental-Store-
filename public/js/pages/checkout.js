@@ -3,7 +3,8 @@
    ---------------------------------------------------------------------
    - Delivery or store pickup, address + pincode check, time slot
    - Coupon, free-delivery progress bar, minimum order
-   - Payment: UPI / Cash on Delivery (Pay at Store for pickup) / Razorpay (if enabled)
+   - Payment: Razorpay online (if keys set) / UPI to store (if UPI ID set) /
+     Cash on Delivery (Pay at Store for pickup)
    Totals come from the server (POST /api/quote), never from the browser.
    ===================================================================== */
 
@@ -11,6 +12,7 @@
   const $ = (sel) => document.querySelector(sel);
   const form = $('[data-checkout]');
   const SAVED_KEY = 'sds_customer'; // remembers name/phone/address on this phone
+  const LAST_ORDER_KEY = 'sds_last_order';
   let couponCode = '';
   let lastQuote = null;
 
@@ -20,7 +22,10 @@
   $('[data-delivery-note]').textContent =
     `${rupees(s.delivery_charge)} · FREE above ${rupees(s.free_delivery_above)}`;
   $('[data-slots]').innerHTML = s.delivery_slots.map((x) => `<option>${esc(x)}</option>`).join('');
-  $('[data-razorpay]').hidden = !s.razorpay_enabled;
+  // Show only the payment options that are set up; select the first one
+  const payOn = { razorpay: !!s.razorpay_available, upi: !!s.upi_id, cod: true };
+  form.querySelectorAll('[data-pay-option]').forEach((el) => { el.hidden = !payOn[el.dataset.payOption]; });
+  form.querySelector('[data-pay-option]:not([hidden]) input').checked = true;
 
   // Fill in details saved from the last order
   try {
@@ -84,16 +89,19 @@
       <div class="cart-total"><span>To pay</span><span>${rupees(q.total)}</span></div>
       ${q.savings > 0 ? `<div class="text-success small justify-content-center mb-2">You save ${rupees(q.savings)} on this order 🎉</div>` : ''}`;
 
+    // A coupon that can't be used blocks the order until it's fixed or removed
+    const problems = [...q.errors];
+    if (couponCode && q.coupon_error) problems.push(`${q.coupon_error} Remove the coupon code to continue.`);
     const errBox = $('[data-errors]');
-    errBox.hidden = !q.errors.length;
-    errBox.textContent = q.errors[0] || '';
-    $('[data-place]').disabled = q.errors.length > 0;
+    errBox.hidden = !problems.length;
+    errBox.textContent = problems[0] || '';
+    $('[data-place]').disabled = problems.length > 0;
     $('[data-place]').textContent = `Place order · ${rupees(q.total)}`;
   }
 
   // ---------- Coupon ----------
   $('[data-apply-coupon]').addEventListener('click', () => {
-    couponCode = form.coupon.value.trim().toUpperCase();
+    couponCode = form.coupon.value.trim().toUpperCase(); // empty field + Apply = remove coupon
     renderSummary();
   });
   form.coupon.addEventListener('keydown', (e) => {
@@ -132,7 +140,7 @@
   // ---------- Place order ----------
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (!validate() || !lastQuote || lastQuote.errors.length) return;
+    if (!validate() || !lastQuote || $('[data-place]').disabled) return;
 
     const btn = $('[data-place]');
     btn.disabled = true;
@@ -158,10 +166,16 @@
 
     try {
       const res = await API.placeOrder(payload);
+      const order = res.order;
       localStorage.setItem(SAVED_KEY, JSON.stringify(payload.customer));
-      UI.track('purchase', { transaction_id: res.order_no, currency: 'INR', value: lastQuote.total });
-      Cart.clear();
-      location.href = `/order-success?no=${encodeURIComponent(res.order_no)}&phone=${res.phone}`;
+      // Remember the last order so "My orders" and "Track" can fill themselves in
+      localStorage.setItem(LAST_ORDER_KEY, JSON.stringify({ no: order.order_no, phone: order.customer.phone }));
+
+      if (res.razorpay) {
+        openRazorpay(res.razorpay, order);  // online payment popup
+      } else {
+        finish(order);
+      }
     } catch (err) {
       console.error(err);
       UI.toast(err.message || 'Sorry, the order could not be placed. Please try again.', 'danger');
@@ -169,6 +183,69 @@
       renderSummary();
     }
   });
+
+  /** Order done: empty the cart and show the thank-you page. */
+  function finish(order) {
+    UI.track('purchase', { transaction_id: order.order_no, currency: 'INR', value: order.total });
+    Cart.clear();
+    location.href = `/order-success?no=${encodeURIComponent(order.order_no)}&phone=${order.customer.phone}`;
+  }
+
+  // ---------- Razorpay (online payment) ----------
+  function loadRazorpayScript() {
+    if (window.Razorpay) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+      const js = document.createElement('script');
+      js.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      js.onload = resolve;
+      js.onerror = () => reject(new Error('Could not load the payment page. Check your internet and try again.'));
+      document.head.appendChild(js);
+    });
+  }
+
+  async function openRazorpay(rz, order) {
+    const btn = $('[data-place]');
+    try {
+      await loadRazorpayScript();
+    } catch (err) {
+      UI.toast(err.message, 'danger');
+      btn.disabled = false;
+      btn.textContent = `Complete payment · ${rupees(order.total)}`;
+      btn.onclick = (e) => { e.preventDefault(); openRazorpay(rz, order); };
+      return;
+    }
+    const checkout = new window.Razorpay({
+      key: rz.key_id,
+      order_id: rz.order_id,
+      amount: rz.amount,
+      currency: rz.currency,
+      name: CONFIG.storeName,
+      description: `Order ${order.order_no}`,
+      prefill: rz.prefill,
+      theme: { color: getComputedStyle(document.documentElement).getPropertyValue('--brand').trim() || '#F55D2C' },
+      handler: async (resp) => {
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Confirming payment…';
+        try {
+          await API.verifyRazorpay({ ...resp, order_no: order.order_no, phone: order.customer.phone });
+        } catch (err) {
+          // The webhook will still confirm it; the success page shows the latest status
+          console.error(err);
+        }
+        finish(order);
+      },
+      modal: {
+        ondismiss: () => {
+          // Customer closed the popup: let them try again with the SAME order
+          UI.toast('Payment not completed. You can try again.', 'danger');
+          btn.disabled = false;
+          btn.textContent = `Complete payment · ${rupees(order.total)}`;
+          btn.onclick = (e) => { e.preventDefault(); openRazorpay(rz, order); };
+        },
+      },
+    });
+    checkout.on('payment.failed', (r) => UI.toast(r.error?.description || 'Payment failed. Please try again.', 'danger'));
+    checkout.open();
+  }
 
   window.addEventListener('cart:change', renderSummary);
   UI.track('begin_checkout', {});

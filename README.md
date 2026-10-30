@@ -6,9 +6,11 @@ Built by **Upward Web**.
 - Frontend: plain HTML + CSS + vanilla JavaScript (Bootstrap 5 from a CDN). No build step.
 - Backend: **Vercel Functions** (`/api`) + **Turso** database (SQLite in the cloud).
 
-> **Current status: Phase 2 — database + API (on Vercel).**
-> Products, categories, settings, banners, combos and all prices come from the
-> database. Orders are still a browser-only demo until Phase 3.
+> **Current status: Phase 3 — online orders, payments & alerts.**
+> Real orders are saved in the database, with prices always recalculated on the server.
+> - **Payments:** Razorpay online, UPI to the store's own UPI ID (QR code and UTR), or Cash on Delivery / Pay at Store
+> - **Alerts:** Telegram (and optional email)
+> - **Spam protection:** rate limiting and a hidden honeypot field
 
 ---
 
@@ -85,7 +87,55 @@ All of them are listed with explanations in **`.env.example`**.
 
 ---
 
-## 4. Database changes (migrations)
+## 4. Order alerts on Telegram (free)
+
+1. On the owner's phone, open **Telegram**, search for **@BotFather** and tap **Start**.
+2. Send `/newbot`.
+   - **Name:** `Subhash Store Orders`
+   - **Username:** must end in `bot`, for example `subhash_store_orders_bot`
+3. BotFather replies with a **token** like `123456789:AAH...`. This is a secret, so keep it private.
+4. Open your new bot (BotFather gives a `t.me/...` link), tap **Start** and send "hi".
+5. In a web browser, open `https://api.telegram.org/bot<TOKEN>/getUpdates`, replacing `<TOKEN>` with your token.
+6. Find `"chat":{"id":123456789`. That number is the **chat ID**.
+   - For several people, add the bot to a Telegram group, send "hi" in the group and repeat step 5. Group IDs start with `-`.
+7. In Vercel, go to **Settings → Environment Variables** and add:
+   - `TELEGRAM_BOT_TOKEN`: the token
+   - `TELEGRAM_CHAT_ID`: the chat ID. For several, separate them with commas.
+   - `SITE_URL`: your site address, e.g. `https://subhash-departmental-store.vercel.app`
+8. **Redeploy**, then place a test order. A message should arrive within seconds.
+
+The owner gets alerts for new orders, UPI payments submitted (with the UTR), paid Razorpay orders and bulk enquiries.
+
+**Optional email alerts:** create a free account at <https://resend.com>, verify a domain, then add `RESEND_API_KEY`, `ALERT_EMAIL_TO` and `ALERT_EMAIL_FROM`.
+
+---
+
+## 5. Online payments with Razorpay
+
+Razorpay appears at checkout automatically once its keys are set. Without them, customers see only UPI and Cash on Delivery.
+
+1. Sign up at <https://dashboard.razorpay.com/signup> using the store's email and phone number.
+2. Start in **Test Mode** (toggle at the top of the dashboard). Test mode works immediately and takes fake payments only.
+3. Go to **Account & Settings → API Keys → Generate Key**. Copy the **Key ID** (`rzp_test_...`) and the **Key Secret**. The secret is shown only once.
+4. In Vercel, go to **Settings → Environment Variables** and add `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET`.
+5. Add the webhook. It's a backup that confirms payments even if the customer closes the page early.
+   1. In Razorpay, go to **Account & Settings → Webhooks → Add New Webhook**.
+   2. **URL:** `https://<your-site>/api/razorpay/webhook`
+   3. **Secret:** make up a long random password and type it here.
+   4. **Events:** `payment.captured` and `order.paid`
+   5. In Vercel, add the same secret as `RAZORPAY_WEBHOOK_SECRET`.
+6. **Redeploy**, then pay a test order with Razorpay's test card or UPI ID `success@razorpay`.
+7. **Going live** after Razorpay approves the KYC:
+   - KYC needs the PAN, a bank account and business details.
+   - The website must have the contact, privacy, terms and refund pages; these already exist.
+   1. Switch Razorpay to **Live Mode** and generate **live** keys (`rzp_live_...`).
+   2. Replace both keys in Vercel.
+   3. Add the webhook again in Live Mode.
+   4. Redeploy.
+
+---
+
+## 6. Database changes (migrations)
 
 - `migrations/0001_init.sql` holds all tables. The comments explain every column.
 - `migrations/0002_sample_data.sql` holds the sample products, settings, banners and coupons. **All prices in it are samples.**
@@ -121,6 +171,13 @@ api/                       Backend — each file is one URL (Vercel Functions)
   combos.js                GET  /api/combos
   banners.js               GET  /api/banners
   quote.js                 POST /api/quote  (prices the cart from the database)
+  orders/index.js          POST /api/orders  (place an order)
+  orders/track.js          GET  /api/orders/track?no=&phone=
+  orders/history.js        GET  /api/orders/history?phone=&no=  (My orders)
+  orders/utr.js            POST /api/orders/utr  (customer's UPI reference)
+  razorpay/verify.js       POST /api/razorpay/verify  (checks Razorpay's signature)
+  razorpay/webhook.js      POST /api/razorpay/webhook (Razorpay calls this)
+  enquiries.js             POST /api/enquiries  (bulk order enquiry)
 lib/                       Shared backend code
   handler.js               Wraps every route: database setup + friendly errors
   db.js                    Database connection (Turso live, local.db on your computer)
@@ -130,6 +187,10 @@ lib/                       Shared backend code
   settings.js              Store settings + defaults + "is the store open?"
   catalog.js               Database rows -> website format
   pricing.js               ★ THE price calculator (cart, checkout, orders)
+  orders.js                Create/load orders, alert text, mark Razorpay paid
+  razorpay.js              Razorpay API + signature checks
+  notify.js                Telegram + email alerts
+  ratelimit.js             Limits repeated requests (anti-spam)
 migrations/                Database structure + sample data, numbered (0001_…, 0002_…)
 scripts/dev-server.js      Local test server (npm run dev)
 scripts/migrate.js         Run migrations by hand / reset local database

@@ -24,11 +24,13 @@
   <div id="site-header"></div>
 
   <main class="container">
-    <div class="page-head"><h1>My orders</h1><p class="text-muted mb-0">Enter the mobile number you used while ordering.</p></div>
-    <form class="form-card d-flex gap-2 mt-3" style="max-width:520px" data-orders-form novalidate>
-      <div class="input-group"><span class="input-group-text">+91</span>
-        <input class="form-control" name="phone" required inputmode="numeric" maxlength="10" placeholder="10-digit mobile number" aria-label="Mobile number"></div>
-      <button class="btn btn-brand" type="submit">Show</button>
+    <div class="page-head"><h1>My orders</h1>
+      <p class="text-muted mb-0">Enter your mobile number and any one of your order numbers (it's on your order confirmation).</p></div>
+    <form class="form-card row g-2 mt-3 mx-0" style="max-width:640px" data-orders-form novalidate>
+      <div class="col-sm-5"><div class="input-group"><span class="input-group-text">+91</span>
+        <input class="form-control" name="phone" required inputmode="numeric" maxlength="10" placeholder="Mobile number" aria-label="Mobile number"></div></div>
+      <div class="col-sm-4"><input class="form-control" name="order_no" required maxlength="12" placeholder="Order no. e.g. SDS7K2M9Q" aria-label="Order number" style="text-transform:uppercase"></div>
+      <div class="col-sm-3 d-grid"><button class="btn btn-brand" type="submit">Show orders</button></div>
     </form>
     <div data-orders class="mb-4"></div>
   </main>
