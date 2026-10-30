@@ -14,6 +14,7 @@
 
     renderHero(banners.hero, byId);
     renderWalkthrough(settings, categories);
+    renderGallery();
     renderDeals(products.filter((p) => p.deal));
     renderCategoryTiles(categories, byId);
     $('[data-featured]').innerHTML = products.filter((p) => p.featured).slice(0, 10).map(UI.productCard).join('');
@@ -32,20 +33,27 @@
   function renderHero(slides, byId) {
     $('[data-hero-dots]').innerHTML = slides.map((_, i) =>
       `<button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="${i}" ${i === 0 ? 'class="active" aria-current="true"' : ''} aria-label="Offer ${i + 1}"></button>`).join('');
-    $('[data-hero-slides]').innerHTML = slides.map((b, i) => `
+    $('[data-hero-slides]').innerHTML = slides.map((b, i) => {
+      // Background: a real photo (darkened so text stays readable) or the banner colour
+      const bg = b.image_url
+        ? `linear-gradient(100deg, rgba(27,33,64,.92) 25%, rgba(27,33,64,.45)), url('${esc(b.image_url)}') center / cover`
+        : `linear-gradient(120deg, ${esc(b.color)}, ${Art.shade(b.color, -0.25)})`;
+      // Right side: a framed photo, or up to 3 product illustrations
+      const side = b.side_image_url
+        ? `<img class="hero-photo" src="${esc(b.side_image_url)}" alt="${esc(b.title)}" ${i === 0 ? '' : 'loading="lazy"'}>`
+        : (b.products || []).map((id) => byId[id] ? `<div>${Art.productImage(byId[id])}</div>` : '').join('');
+      return `
       <div class="carousel-item${i === 0 ? ' active' : ''}">
-        <div class="hero-slide" style="background:linear-gradient(120deg, ${esc(b.color)}, ${Art.shade(b.color, -0.25)})">
+        <div class="hero-slide${b.image_url ? ' has-photo' : ''}" style="background:${bg}">
           <div>
             <h2>${esc(b.title)}</h2>
             <p>${esc(b.subtitle)}</p>
             <a href="${esc(b.link)}" class="btn">${esc(b.button)} <i class="bi bi-arrow-right"></i></a>
           </div>
-          <div class="hero-art">
-            ${b.image_url ? `<div><img src="${esc(b.image_url)}" alt=""></div>`
-              : (b.products || []).map((id) => byId[id] ? `<div>${Art.productImage(byId[id])}</div>` : '').join('')}
-          </div>
+          <div class="hero-art">${side}</div>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   }
 
   // ---------------------------------------------------- 5. Walkthrough
@@ -125,6 +133,18 @@
       });
     };
     document.body.appendChild(js);
+  }
+
+  // ------------------------------------------------- Photos from our store
+  function renderGallery() {
+    const photos = CONFIG.gallery || [];
+    if (!photos.length) return;
+    $('[data-gallery]').innerHTML = photos.map((p) => `
+      <a class="gallery-item" href="${esc(p.src)}" target="_blank" rel="noopener">
+        <img src="${esc(p.src)}" alt="${esc(p.caption || CONFIG.storeName)}" loading="lazy" decoding="async">
+        ${p.caption ? `<span>${esc(p.caption)}</span>` : ''}
+      </a>`).join('');
+    $('#gallery').hidden = false;
   }
 
   // ------------------------------------------------------ 6. Deals

@@ -29,12 +29,20 @@ const CONFIG = {
   },
 
   // Photo of the shop front (shown in Visit Us, Contact and behind the store-tour box).
-  // To change it, replace public/img/store-front.jpg or point this to another image.
-  storePhoto: '/img/store-front.jpg',
+  // To change it, replace public/img/gallery/store-front.jpg or point this to another image.
+  storePhoto: '/img/gallery/store-front.jpg',
   storePhotoAlt: 'Subhash Departmental Store shop front, Pakhowal Road, Ludhiana',
   // Photo of the aisles inside (background of the "Walk Inside Our Store" section,
   // and the cover picture of the tour video if no other poster is set).
-  insidePhoto: '/img/store-inside.jpg',
+  insidePhoto: '/img/gallery/store-inside.jpg',
+
+  // "Photos from our store" gallery on the homepage.
+  // To add a photo: put the file in public/img/gallery/ and add a line here.
+  // Empty list = section hidden.
+  gallery: [
+    { src: '/img/gallery/store-front.jpg', caption: 'Our store on Pakhowal Road' },
+    { src: '/img/gallery/store-inside.jpg', caption: 'Wide aisles with everything you need' },
+  ],
 
   // Google Maps links (no API key needed)
   mapsDirectionsUrl:

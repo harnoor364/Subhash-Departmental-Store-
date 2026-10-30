@@ -154,6 +154,11 @@ img { max-width: 100%; }
 .hero-art > div { width: 33%; max-width: 130px; filter: drop-shadow(0 8px 12px rgba(0, 0, 0, .25)); }
 .hero-art > div:nth-child(2) { transform: translateY(-14px) scale(1.15); z-index: 1; }
 .hero-art img { width: 100%; aspect-ratio: 1; object-fit: contain; }
+.hero-slide.has-photo::before { display: none; }
+.hero-photo {
+  width: 100%; max-width: 360px; aspect-ratio: 408 / 296; object-fit: cover;
+  border-radius: 14px; border: 4px solid #fff; box-shadow: 0 12px 30px rgba(0, 0, 0, .4); transform: rotate(2deg);
+}
 .hero .carousel-indicators [data-bs-target] { width: 8px; height: 8px; border-radius: 50%; }
 
 /* ---------- Walkthrough ---------- */
@@ -180,6 +185,23 @@ img { max-width: 100%; }
   background: var(--brand-soft); color: var(--brand);
 }
 .aisle-chips a:hover { background: var(--brand); color: #fff; }
+
+/* ---------- Photo gallery ---------- */
+.gallery {
+  display: grid; grid-auto-flow: column; grid-auto-columns: 78%; gap: 12px;
+  overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 6px;
+}
+@media (min-width: 768px) { .gallery { grid-auto-columns: calc((100% - 24px) / 3); } }
+.gallery-item {
+  position: relative; display: block; border-radius: var(--radius); overflow: hidden;
+  box-shadow: var(--shadow); scroll-snap-align: start; aspect-ratio: 4 / 3; background: var(--card-2);
+}
+.gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s; }
+.gallery-item:hover img { transform: scale(1.04); }
+.gallery-item span {
+  position: absolute; left: 0; right: 0; bottom: 0; padding: 24px 12px 10px; color: #fff; font-size: .85rem; font-weight: 500;
+  background: linear-gradient(transparent, rgba(0, 0, 0, .7));
+}
 
 /* ---------- Horizontal scroll rows (deals, fresh) ---------- */
 .h-scroll {
