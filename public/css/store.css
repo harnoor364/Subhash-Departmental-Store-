@@ -161,12 +161,13 @@ img { max-width: 100%; }
   position: relative; aspect-ratio: 16 / 9; border-radius: var(--radius); overflow: hidden;
   background: linear-gradient(135deg, var(--navy), var(--navy-2)); color: #fff;
 }
-.walk-media:has(.walk-soon) { aspect-ratio: auto; min-height: 200px; }  /* placeholder doesn't need full video height */
+.walk-media:has(.walk-soon) { aspect-ratio: auto; height: clamp(220px, 42vw, 520px); }  /* placeholder height grows with screen width */
 @media (min-width: 992px) { .walk-media { max-height: 560px; } }
 .walk-media video, .walk-media iframe, .walk-media .pano { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-.walk-soon { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 20px; }
+.walk-soon { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; }
 .walk-soon { background-size: cover; background-position: center; }
 .walk-soon i { font-size: 3rem; color: var(--brand); }
+.walk-soon h3, .walk-soon p { text-shadow: 0 2px 8px rgba(0, 0, 0, .6); }
 .walk-soon h3 { color: #fff; margin: 8px 0 4px; font-size: 1.2rem; }
 .walk-soon p { opacity: .75; margin: 0; font-size: .9rem; }
 .walk-play {

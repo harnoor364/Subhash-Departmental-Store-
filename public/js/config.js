@@ -32,6 +32,9 @@ const CONFIG = {
   // To change it, replace public/img/store-front.jpg or point this to another image.
   storePhoto: '/img/store-front.jpg',
   storePhotoAlt: 'Subhash Departmental Store shop front, Pakhowal Road, Ludhiana',
+  // Photo of the aisles inside (background of the "Walk Inside Our Store" section,
+  // and the cover picture of the tour video if no other poster is set).
+  insidePhoto: '/img/store-inside.jpg',
 
   // Google Maps links (no API key needed)
   mapsDirectionsUrl:

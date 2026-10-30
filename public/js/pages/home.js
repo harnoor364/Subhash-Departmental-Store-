@@ -65,7 +65,7 @@
     const hasMedia = (type === 'video' && s.walkthrough_video_url) || (type === 'youtube' && ytId) || (type === '360' && s.walkthrough_360_url);
 
     if (!hasMedia) {
-      box.innerHTML = `<div class="walk-soon" style="background-image:linear-gradient(rgba(27,33,64,.72),rgba(27,33,64,.88)),url('${esc(CONFIG.storePhoto)}')"><div><i class="bi bi-camera-video"></i>
+      box.innerHTML = `<div class="walk-soon" style="background-image:linear-gradient(rgba(27,33,64,.45),rgba(27,33,64,.8)),url('${esc(CONFIG.insidePhoto)}')"><div><i class="bi bi-camera-video"></i>
         <h3>Virtual store tour coming soon</h3><p>Meanwhile, shop every aisle online below.</p></div></div>`;
       return;
     }
@@ -74,7 +74,7 @@
     const load = () => {
       if (type === 'video') {
         box.innerHTML = `<video controls preload="none" playsinline
-            ${s.walkthrough_poster_url ? `poster="${esc(s.walkthrough_poster_url)}"` : ''}
+            poster="${esc(s.walkthrough_poster_url || CONFIG.insidePhoto)}"
             src="${esc(s.walkthrough_video_url)}"></video>
           <button class="walk-play" type="button" aria-label="Play store tour"><i class="bi bi-play-fill"></i></button>`;
         const video = box.querySelector('video');
