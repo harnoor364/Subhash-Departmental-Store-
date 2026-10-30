@@ -100,7 +100,8 @@ const CONFIG = {
     { icon: 'bi-basket', title: 'Everything in one place', text: 'Your full monthly list from a single store.' },
   ],
 
-  credit: { text: 'Website by Upward Web', url: '#' }, // put Upward Web's site URL here
+  // Designer credit at the very bottom of every page (a normal link, so search engines count it)
+  credit: { text: 'Website by Upward Web', url: 'https://harnoorsingh.in' },
 
   currency: '₹',
   locale: 'en-IN',

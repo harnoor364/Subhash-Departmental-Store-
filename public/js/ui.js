@@ -152,7 +152,7 @@ const UI = (() => {
         </div>
         <div class="footer-bottom">
           <span>© ${year} ${esc(CONFIG.storeName)}, ${esc(CONFIG.city)}</span>
-          <a href="${esc(CONFIG.credit.url)}" target="_blank" rel="noopener">${esc(CONFIG.credit.text)}</a>
+          <a href="${esc(CONFIG.credit.url)}" target="_blank" rel="noopener" title="Upward Web – website design, Ludhiana">${esc(CONFIG.credit.text)}</a>
         </div>
       </div>
     </footer>
