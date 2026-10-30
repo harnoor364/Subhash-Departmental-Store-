@@ -3,7 +3,7 @@
    ---------------------------------------------------------------------
    Works like Vercel on your computer, without needing a Vercel login:
    - serves the website from /public with clean URLs (/category -> category.html)
-   - runs the API files in /api (e.g. /api/products/toor-dal-1kg -> api/products/[id].js)
+   - runs the API (api/index.js, which sends each URL to its file in /routes)
    - reads secrets from .env.local
    Restarts by itself when you change a file in /api or /lib.
    ===================================================================== */
@@ -31,7 +31,7 @@ const TYPES = {
 http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   try {
-    if (url.pathname.startsWith('/api/')) await serveApi(req, res, url);
+    if (url.pathname === '/api' || url.pathname.startsWith('/api/')) await serveApi(req, res, url);
     else serveStatic(res, url);
   } catch (err) {
     console.error(err);
@@ -42,12 +42,9 @@ http.createServer(async (req, res) => {
   console.log(`  Database: ${process.env.TURSO_DATABASE_URL ? 'Turso (cloud)' : 'local.db (local file)'}\n`);
 });
 
-// ---------- API: find the matching file in /api and call GET/POST ----------
+// ---------- API: every /api/... request goes to api/index.js (like on Vercel) ----------
 async function serveApi(req, res, url) {
-  const file = findApiFile(url.pathname.slice('/api/'.length).split('/').filter(Boolean));
-  if (!file) return send(res, 404, { error: 'Not found' });
-
-  const mod = await import(pathToFileURL(file).href);
+  const mod = await import(pathToFileURL(path.join(API, 'index.js')).href);
   const handler = mod[req.method];
   if (!handler) return send(res, 405, { error: 'Method not allowed' });
 
@@ -58,27 +55,6 @@ async function serveApi(req, res, url) {
   res.writeHead(response.status, Object.fromEntries(response.headers));
   res.end(Buffer.from(await response.arrayBuffer()));
   console.log(`${req.method} ${url.pathname}${url.search} → ${response.status}`);
-}
-
-/** /api/products/abc -> api/products/abc.js, api/products/abc/index.js or api/products/[id].js */
-function findApiFile(parts) {
-  let dir = API;
-  for (let i = 0; i < parts.length; i++) {
-    const part = parts[i];
-    const last = i === parts.length - 1;
-    if (last && fs.existsSync(path.join(dir, part + '.js'))) return path.join(dir, part + '.js');
-    if (fs.existsSync(path.join(dir, part)) && fs.statSync(path.join(dir, part)).isDirectory()) {
-      dir = path.join(dir, part);
-      if (last && fs.existsSync(path.join(dir, 'index.js'))) return path.join(dir, 'index.js');
-      continue;
-    }
-    const dynamic = fs.readdirSync(dir).find((f) => /^\[.+\](\.js)?$/.test(f));
-    if (!dynamic) return null;
-    if (dynamic.endsWith('.js')) return last ? path.join(dir, dynamic) : null;
-    dir = path.join(dir, dynamic);
-    if (last) return fs.existsSync(path.join(dir, 'index.js')) ? path.join(dir, 'index.js') : null;
-  }
-  return null;
 }
 
 // ---------- Website files ----------

@@ -163,11 +163,13 @@ public/                    Everything the browser sees (the website)
   js/ui.js                 Header, footer, bottom nav, cart drawer, product cards
   js/pages/*.js            One script per page
   img/                     Favicon and images
-api/                       Backend — each file is one URL (Vercel Functions)
+api/index.js               The ONE server function: sends each /api/... URL to its file in routes/
+                           (Vercel's free plan allows max 12 functions — this keeps it at 1)
+routes/                    Backend — one file per URL. To add one, also add a line in api/index.js
   settings.js              GET  /api/settings
   categories.js            GET  /api/categories
   products/index.js        GET  /api/products?category=&q=&featured=1&deal=1&ids=
-  products/[id].js         GET  /api/products/<id>  (+ bought-together, similar)
+  products/item.js         GET  /api/products/<id>  (+ bought-together, similar)
   combos.js                GET  /api/combos
   banners.js               GET  /api/banners
   quote.js                 POST /api/quote  (prices the cart from the database)

@@ -8,8 +8,8 @@
     "bom1"
   ],
   "functions": {
-    "api/**/*.js": {
-      "includeFiles": "migrations/**",
+    "api/index.js": {
+      "includeFiles": "{migrations,routes}/**",
       "maxDuration": 15
     }
   },
@@ -39,6 +39,12 @@
           "value": "public, max-age=86400, stale-while-revalidate=604800"
         }
       ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api?__path=:path*"
     }
   ]
 }
