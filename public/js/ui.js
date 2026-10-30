@@ -408,6 +408,11 @@ const UI = (() => {
     if (head) head.innerHTML = headerHTML();
     if (foot) foot.innerHTML = footerHTML();
 
+    document.querySelectorAll('[data-store-photo]').forEach((img) => {
+      img.src = CONFIG.storePhoto;
+      img.alt = CONFIG.storePhotoAlt;
+    });
+
     const page = document.body.dataset.page;
     document.querySelector(`.bottom-nav [data-nav="${page}"]`)?.classList.add('active');
 

@@ -65,7 +65,7 @@
     const hasMedia = (type === 'video' && s.walkthrough_video_url) || (type === 'youtube' && ytId) || (type === '360' && s.walkthrough_360_url);
 
     if (!hasMedia) {
-      box.innerHTML = `<div class="walk-soon"><div><i class="bi bi-camera-video"></i>
+      box.innerHTML = `<div class="walk-soon" style="background-image:linear-gradient(rgba(27,33,64,.72),rgba(27,33,64,.88)),url('${esc(CONFIG.storePhoto)}')"><div><i class="bi bi-camera-video"></i>
         <h3>Virtual store tour coming soon</h3><p>Meanwhile, shop every aisle online below.</p></div></div>`;
       return;
     }

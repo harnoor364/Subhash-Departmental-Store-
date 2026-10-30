@@ -165,6 +165,7 @@ img { max-width: 100%; }
 @media (min-width: 992px) { .walk-media { max-height: 560px; } }
 .walk-media video, .walk-media iframe, .walk-media .pano { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 .walk-soon { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 20px; }
+.walk-soon { background-size: cover; background-position: center; }
 .walk-soon i { font-size: 3rem; color: var(--brand); }
 .walk-soon h3 { color: #fff; margin: 8px 0 4px; font-size: 1.2rem; }
 .walk-soon p { opacity: .75; margin: 0; font-size: .9rem; }
@@ -302,6 +303,10 @@ img { max-width: 100%; }
 .visit dl { display: grid; grid-template-columns: 28px 1fr; gap: 10px 8px; margin: 0 0 16px; }
 .visit dt { color: var(--brand); font-size: 1.1rem; }
 .visit dd { margin: 0; }
+.store-photo {
+  display: block; width: 100%; height: auto; aspect-ratio: 408 / 296; object-fit: cover;
+  border-radius: var(--radius-sm); margin-bottom: 16px; background: var(--card-2);
+}
 .map-frame { border-radius: var(--radius); overflow: hidden; min-height: 280px; background: var(--card-2); box-shadow: var(--shadow); }
 .map-frame iframe { width: 100%; height: 100%; min-height: 280px; border: 0; display: block; }
 

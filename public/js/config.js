@@ -28,6 +28,11 @@ const CONFIG = {
     plusCode: 'VQFX+93 Ludhiana',
   },
 
+  // Photo of the shop front (shown in Visit Us, Contact and behind the store-tour box).
+  // To change it, replace public/img/store-front.jpg or point this to another image.
+  storePhoto: '/img/store-front.jpg',
+  storePhotoAlt: 'Subhash Departmental Store shop front, Pakhowal Road, Ludhiana',
+
   // Google Maps links (no API key needed)
   mapsDirectionsUrl:
     'https://www.google.com/maps/search/?api=1&query=Subhash+Departmental+Store+Pakhowal+Road+Ludhiana',
