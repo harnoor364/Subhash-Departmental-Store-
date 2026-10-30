@@ -63,7 +63,7 @@ const CONFIG = {
   // Empty = that icon is hidden. Shown in the footer and on the Contact page.
   social: {
     facebook: 'https://www.facebook.com/subhashdepartmentalstore/',
-    instagram: '',
+    instagram: 'https://www.instagram.com/subhashdepartmentalstore/',
     youtube: '',
     x: '',              // Twitter / X
     googleBusiness: '', // Google Business Profile / Maps listing
