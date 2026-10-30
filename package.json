@@ -1,0 +1,12 @@
+{
+  "name": "subhash-departmental-store",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Online grocery store for Subhash Departmental Store, Ludhiana. Built by Upward Web.",
+  "scripts": {
+    "dev": "wrangler pages dev public --port 8788"
+  },
+  "devDependencies": {
+    "wrangler": "^4.40.0"
+  }
+}

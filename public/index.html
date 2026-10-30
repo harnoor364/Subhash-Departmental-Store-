@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Subhash Departmental Store – Grocery Delivery on Pakhowal Road, Ludhiana</title>
+  <meta name="description" content="Order groceries online from Subhash Departmental Store, Pakhowal Road, Ludhiana. Atta, dal, oil, masale, dairy, snacks, cleaning and more. Home delivery and in-store pickup. Open till 10 PM.">
+  <meta name="theme-color" content="#F55D2C">
+  <link rel="canonical" href="/">
+  <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Subhash Departmental Store">
+  <meta property="og:title" content="Subhash Departmental Store – Grocery Delivery in Ludhiana">
+  <meta property="og:description" content="Your neighbourhood store on Pakhowal Road. Order online for home delivery or in-store pickup.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="/css/theme.css" rel="stylesheet">
+  <link href="/css/store.css" rel="stylesheet">
+  <script src="/js/theme-init.js"></script>
+
+  <!-- Business info for Google (local SEO). Keep in sync with config.js -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "GroceryStore",
+    "name": "Subhash Departmental Store",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Backside Hotel Keys, Pakhowal Road, Sua Rd, Basant City",
+      "addressLocality": "Ludhiana",
+      "addressRegion": "Punjab",
+      "postalCode": "142022",
+      "addressCountry": "IN"
+    },
+    "hasMap": "https://www.google.com/maps/search/?api=1&query=Subhash+Departmental+Store+Pakhowal+Road+Ludhiana",
+    "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.3", "reviewCount": "39" },
+    "priceRange": "₹"
+  }
+  </script>
+</head>
+<body data-page="home">
+  <div id="site-header"></div>
+
+  <main>
+    <!-- 4. Hero slider (banners come from data / admin) -->
+    <section class="hero container" aria-label="Offers">
+      <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000">
+        <div class="carousel-indicators" data-hero-dots></div>
+        <div class="carousel-inner" data-hero-slides>
+          <div class="carousel-item active"><div class="hero-slide" style="background:var(--brand)"></div></div>
+        </div>
+      </div>
+      <div class="closed-note alert alert-warning mt-3 mb-0">
+        <i class="bi bi-moon"></i> We're closed right now. You can still order — it will be processed tomorrow morning.
+      </div>
+    </section>
+
+    <!-- 5. Store walkthrough (video / YouTube / 360° / hidden — set in admin) -->
+    <section class="section container" id="walkthrough">
+      <div class="panel">
+        <div class="section-head">
+          <div><h2>Take a Walk Inside Our Store</h2><p>See the aisles before you visit — then shop them online.</p></div>
+        </div>
+        <div class="walk-media" data-walk-media></div>
+        <div class="aisle-chips" data-aisles></div>
+      </div>
+    </section>
+
+    <!-- 6. Today's deals -->
+    <section class="section container" id="deals">
+      <div class="deals-band">
+        <div class="section-head">
+          <div><h2><i class="bi bi-lightning-charge-fill"></i> Today's Deals</h2>
+            <p>Ends in <span class="deal-timer" data-deal-timer>--:--:--</span></p></div>
+          <a class="see-all" href="/category?deals=1">See all <i class="bi bi-chevron-right"></i></a>
+        </div>
+        <div class="h-scroll" data-deals></div>
+      </div>
+    </section>
+
+    <!-- 7. Shop by category -->
+    <section class="section container" id="categories">
+      <div class="section-head">
+        <div><h2>Shop by Category</h2><p>Everything for your home, in one place</p></div>
+        <a class="see-all" href="/category">All products <i class="bi bi-chevron-right"></i></a>
+      </div>
+      <div class="cat-grid" data-cat-tiles></div>
+    </section>
+
+    <!-- 8. Featured products -->
+    <section class="section container" id="featured">
+      <div class="section-head">
+        <div><h2>Top Featured Products</h2><p>Best-sellers our customers buy every month</p></div>
+        <a class="see-all" href="/category?featured=1">See all <i class="bi bi-chevron-right"></i></a>
+      </div>
+      <div class="p-grid" data-featured></div>
+    </section>
+
+    <!-- 9. Promo banners -->
+    <section class="section container pt-0" aria-label="Promotions">
+      <div class="promo-grid" data-promos></div>
+    </section>
+
+    <!-- 10. Combo kits -->
+    <section class="section container" id="combos">
+      <div class="section-head">
+        <div><h2>Combo Kits</h2><p>Ready-made kits — one click, everything inside</p></div>
+      </div>
+      <div class="combo-grid" data-combos></div>
+    </section>
+
+    <!-- 11. Fresh fruits & vegetables -->
+    <section class="section container" id="fresh">
+      <div class="section-head">
+        <div><h2>Fresh Vegetables &amp; Fruits</h2><p>Add sabzi to your grocery order</p></div>
+        <div class="d-flex gap-2 align-items-center">
+          <button class="icon-btn d-none d-md-inline-flex" type="button" data-scroll="-1" aria-label="Scroll left"><i class="bi bi-chevron-left"></i></button>
+          <button class="icon-btn d-none d-md-inline-flex" type="button" data-scroll="1" aria-label="Scroll right"><i class="bi bi-chevron-right"></i></button>
+          <a class="see-all" href="/category?c=fruits-vegetables">See all</a>
+        </div>
+      </div>
+      <div class="h-scroll" data-fresh></div>
+    </section>
+
+    <!-- 12. Why shop with us -->
+    <section class="section container">
+      <div class="section-head"><div><h2>Why Shop With Us</h2></div></div>
+      <div class="why-grid" data-why></div>
+    </section>
+
+    <!-- 13. Reviews -->
+    <section class="section container" id="reviews">
+      <div class="panel">
+        <div class="section-head flex-wrap">
+          <div class="rating-big">
+            <b data-rating-value>4.3</b>
+            <div><div class="stars" data-stars>★★★★☆</div>
+              <small class="text-muted">Based on <span data-rating-count>39</span> Google reviews</small></div>
+          </div>
+          <a class="btn btn-outline-brand btn-sm" href="#" target="_blank" rel="noopener" data-google-reviews>
+            See all reviews on Google <i class="bi bi-box-arrow-up-right"></i></a>
+        </div>
+        <div class="review-grid" data-reviews></div>
+      </div>
+    </section>
+
+    <!-- 14. Visit us -->
+    <section class="section container" id="visit">
+      <div class="section-head"><div><h2>Visit Us</h2><p>Shop in person or pick up your online order</p></div></div>
+      <div class="visit">
+        <div class="panel">
+          <dl data-visit></dl>
+          <a class="btn btn-brand" data-directions target="_blank" rel="noopener"><i class="bi bi-sign-turn-right"></i> Get Directions</a>
+          <a class="btn btn-outline-brand ms-1" href="#" data-call><i class="bi bi-telephone"></i> Call store</a>
+        </div>
+        <div class="map-frame" data-map></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  <script defer src="/js/config.js"></script>
+  <script defer src="/js/utils.js"></script>
+  <script defer src="/js/api.js"></script>
+  <script defer src="/js/art.js"></script>
+  <script defer src="/js/cart.js"></script>
+  <script defer src="/js/ui.js"></script>
+  <script defer src="/js/pages/home.js"></script>
+</body>
+</html>
