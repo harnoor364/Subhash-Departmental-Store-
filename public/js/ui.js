@@ -80,6 +80,26 @@ const UI = (() => {
     </nav>`;
   }
 
+  // ---------------------------------------------------------------- social
+  // Icon + name for each social network in CONFIG.social (Bootstrap Icons)
+  const SOCIAL = {
+    facebook: ['bi-facebook', 'Facebook'],
+    instagram: ['bi-instagram', 'Instagram'],
+    youtube: ['bi-youtube', 'YouTube'],
+    x: ['bi-twitter-x', 'X (Twitter)'],
+    googleBusiness: ['bi-google', 'Google'],
+    justdial: ['bi-telephone-outbound', 'Justdial'],
+  };
+
+  /** Round icon links for every social profile that has a link. '' if none. */
+  function socialLinks(extraClass = '') {
+    const links = Object.entries(CONFIG.social || {})
+      .filter(([key, url]) => SOCIAL[key] && /^https?:\/\//.test(url || ''))
+      .map(([key, url]) => `<a class="social-link ${extraClass}" href="${esc(url)}" target="_blank" rel="noopener"
+          aria-label="${esc(CONFIG.storeName)} on ${SOCIAL[key][1]}" title="${SOCIAL[key][1]}"><i class="bi ${SOCIAL[key][0]}"></i></a>`);
+    return links.length ? `<div class="social-row">${links.join('')}</div>` : '';
+  }
+
   // --------------------------------------------------------------- footer
   function footerHTML() {
     const a = CONFIG.address;
@@ -97,6 +117,7 @@ const UI = (() => {
               Order online for home delivery or in-store pickup.</p>
             <p class="mb-0"><i class="bi bi-star-fill text-warning"></i>
               <b>${CONFIG.rating.value}</b> on Google <span class="footer-muted">(${CONFIG.rating.count} reviews)</span></p>
+            ${socialLinks()}
           </div>
           <div class="col-6 col-lg-2">
             <h6>Shop</h6>
@@ -436,5 +457,5 @@ const UI = (() => {
 
   init();
 
-  return { toast, track, productCard, comboCard, qtySlot, refreshQtySlots, freeDeliveryBar, openCart, getSettings };
+  return { socialLinks, toast, track, productCard, comboCard, qtySlot, refreshQtySlots, freeDeliveryBar, openCart, getSettings };
 })();

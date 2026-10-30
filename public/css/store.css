@@ -364,6 +364,16 @@ img.fade-in.is-loaded { opacity: 1; }
   margin-top: 28px; padding: 16px 0; font-size: .8rem; color: #9CA3C4;
 }
 
+/* ---------- Social media icons ---------- */
+.social-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.social-link {
+  width: 38px; height: 38px; border-radius: 50%; display: inline-grid; place-items: center; font-size: 1.05rem;
+  background: rgba(255, 255, 255, .1); color: #fff !important; transition: background .2s, transform .2s;
+}
+.social-link:hover { background: var(--brand); transform: translateY(-2px); }
+.social-link-lg { width: 44px; height: 44px; font-size: 1.2rem; background: var(--brand-soft); color: var(--brand) !important; }
+.social-link-lg:hover { color: #fff !important; }
+
 /* ---------- Mobile bottom nav & WhatsApp ---------- */
 .bottom-nav {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 1040; background: var(--card);

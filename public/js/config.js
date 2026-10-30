@@ -59,6 +59,17 @@ const CONFIG = {
     { src: '/img/gallery/store-floor.jpg', caption: 'Plenty of room to shop' },
   ],
 
+  // Social media profiles. Paste the full link (https://...) between the quotes.
+  // Empty = that icon is hidden. Shown in the footer and on the Contact page.
+  social: {
+    facebook: '',
+    instagram: '',
+    youtube: '',
+    x: '',              // Twitter / X
+    googleBusiness: '', // Google Business Profile / Maps listing
+    justdial: '',
+  },
+
   // Google Maps links (no API key needed)
   mapsDirectionsUrl:
     'https://www.google.com/maps/search/?api=1&query=Subhash+Departmental+Store+Pakhowal+Road+Ludhiana',
