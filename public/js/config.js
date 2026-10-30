@@ -41,6 +41,7 @@ const CONFIG = {
   // Empty list = section hidden.
   gallery: [
     { src: '/img/gallery/store-front.jpg', caption: 'Our store on Pakhowal Road' },
+    { src: '/img/gallery/store-entrance.jpg', caption: 'Step inside — the front area as you enter' },
     { src: '/img/gallery/store-inside.jpg', caption: 'Wide aisles with everything you need' },
   ],
 
